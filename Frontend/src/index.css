@@ -5036,3 +5036,27 @@ html {
     opacity: 0;
   }
 }
+
+  .bg-muted {
+    background-color: var(--muted);
+  }
+  .grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+    @media (width >= 48rem) {
+    .md\:grid-cols-4 {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+    .rounded-xl {
+    border-radius: calc(var(--radius)  + 4px);
+  }
+  .grid {
+    display: grid;
+  }
+  .p-\[3px\] {
+    padding: 3px;
+  }
+    .h-9 {
+    height: calc(var(--spacing) * 9);
+  }
