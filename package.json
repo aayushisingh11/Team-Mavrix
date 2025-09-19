@@ -6,6 +6,6 @@
     "dev": "cd Frontend && npm run dev",
     "build": "cd Frontend && npm run build",
     "predeploy": "npm run build",
-    "deploy": "gh-pages -d Frontend/build"
+    "deploy": "gh-pages -d Frontend/dist"
   }
 }
