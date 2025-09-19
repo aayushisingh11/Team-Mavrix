@@ -55,9 +55,9 @@
             "vite": "6.3.5"
       },
       "scripts": {
-            "dev": "vite",
-            "build": "vite build",
-            "predeploy": "npm run build",
-            "deploy": "gh-pages -d Frontend/build"
+        "predeploy": "npm run build",
+        "deploy": "gh-pages -d dist",
+        "dev": "vite",
+        "build": "vite build"
       }
 }
