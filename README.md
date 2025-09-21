@@ -8,7 +8,7 @@
 
 ### You can Visit the webapp at
 
-  [link text](https://team-mavrix-deploy.vercel.app/)
+  [click to view](https://team-mavrix-deploy.vercel.app/)
 
   You can use email - test@test.com
   
