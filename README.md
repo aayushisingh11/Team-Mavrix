@@ -8,7 +8,9 @@
 
   ## Running backend (using seprate terminal)
   Run `uvicorn main:app --reload --host 127.0.0.1 --port 8000` to start backend server.
+  
   Check port `http://127.0.0.1:8000/` for `{"message":"FastAPI backend is running"}` to confirm server is running.
+  
   Run `uvicorn main:app --reload` for reload or refresh if required.
 
   Note: .env file is not there. You have to add inside Backend folder with API key `GOOGLE_API_KEY=YOUR_VALID_API_KEY_HERE`
