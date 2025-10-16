@@ -5,6 +5,7 @@ import { SocialMatching } from './SocialMatching';
 import { ItineraryPlanner } from './ItineraryPlanner';
 import { TripOverview } from './TripOverview';
 import { Splitwise } from './Splitwise';
+import AIChat from './AIChat';
 
 interface DashboardProps {
   onLogout: () => void;
@@ -40,6 +41,7 @@ export default function Dashboard({ onLogout }: DashboardProps) {
       <main className="flex-1 overflow-auto">
         <div className="p-6">
           {renderContent()}
+          <AIChat />
         </div>
       </main>
     </div>
