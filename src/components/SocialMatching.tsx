@@ -14,11 +14,11 @@ import { Separator } from './ui/separator';
 import { Checkbox } from './ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { toast } from 'sonner@2.0.3';
-import { 
-  Users, 
-  MessageCircle, 
-  Heart, 
-  MapPin, 
+import {
+  Users,
+  MessageCircle,
+  Heart,
+  MapPin,
   Calendar,
   Star,
   UserPlus,
@@ -71,6 +71,7 @@ import {
   Save,
   User
 } from 'lucide-react';
+import Gemini from "./Gemini";
 
 export function SocialMatching() {
   const [activeTab, setActiveTab] = useState('group');
@@ -79,57 +80,57 @@ export function SocialMatching() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [message, setMessage] = useState('');
-  
+
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
   const [interestFilters, setInterestFilters] = useState([]);
   const [compatibilityFilter, setCompatibilityFilter] = useState('any');
   const [verifiedFilter, setVerifiedFilter] = useState(false);
-  
+
   // Group management states
   const [invitedMembers, setInvitedMembers] = useState([]);
   const [showInvited, setShowInvited] = useState(false);
   const [isGroupChatOpen, setIsGroupChatOpen] = useState(false);
-  
+
   // Profile editing states
   const [editingProfile, setEditingProfile] = useState(null);
   const [tempProfileData, setTempProfileData] = useState(null);
   const [profileEditTab, setProfileEditTab] = useState('basic');
-  
+
   // Guide states
   const [selectedGuide, setSelectedGuide] = useState(null);
   const [isGuideProfileOpen, setIsGuideProfileOpen] = useState(false);
-  
+
   // Companion profile states
   const [selectedCompanion, setSelectedCompanion] = useState(null);
   const [isCompanionProfileOpen, setIsCompanionProfileOpen] = useState(false);
-  
+
   const [currentGroup, setCurrentGroup] = useState([
-    { 
-      id: 1, 
-      name: 'John Doe', 
-      avatar: 'JD', 
+    {
+      id: 1,
+      name: 'John Doe',
+      avatar: 'JD',
       age: 29,
       location: 'New York, USA',
       interests: ['nightlife', 'food', 'photography'],
       compatibility: 95,
       status: 'confirmed'
     },
-    { 
-      id: 2, 
-      name: 'Sarah Wilson', 
-      avatar: 'SW', 
+    {
+      id: 2,
+      name: 'Sarah Wilson',
+      avatar: 'SW',
       age: 26,
       location: 'Toronto, Canada',
       interests: ['temples', 'culture', 'shopping'],
       compatibility: 78,
       status: 'confirmed'
     },
-    { 
-      id: 3, 
-      name: 'Mike Chen', 
-      avatar: 'MC', 
+    {
+      id: 3,
+      name: 'Mike Chen',
+      avatar: 'MC',
       age: 31,
       location: 'Vancouver, Canada',
       interests: ['shopping', 'food', 'adventure'],
@@ -155,7 +156,7 @@ export function SocialMatching() {
     {
       id: 5,
       name: 'Alex Johnson',
-      avatar: 'AJ', 
+      avatar: 'AJ',
       location: 'London, UK',
       age: 32,
       interests: ['adventure', 'nightlife', 'music'],
@@ -170,7 +171,7 @@ export function SocialMatching() {
       name: 'Lisa Chang',
       avatar: 'LC',
       location: 'Singapore',
-      age: 26, 
+      age: 26,
       interests: ['shopping', 'spa', 'beaches'],
       matchScore: 79,
       tripDates: 'Dec 14-21, 2024',
@@ -311,7 +312,7 @@ export function SocialMatching() {
     },
     {
       id: 8,
-      name: 'Maria Fernandes', 
+      name: 'Maria Fernandes',
       avatar: 'MF',
       location: 'Old Goa',
       address: 'Basilica of Bom Jesus Road, Old Goa 403402',
@@ -332,29 +333,29 @@ export function SocialMatching() {
   // Calculate group compatibility dynamically
   const groupCompatibility = useMemo(() => {
     if (currentGroup.length === 0) return 0;
-    
+
     // Get all interests from group members
     const allInterests = currentGroup.flatMap(member => member.interests);
     const uniqueInterests = [...new Set(allInterests)];
-    
+
     // Calculate shared interests
     let sharedInterestScore = 0;
     uniqueInterests.forEach(interest => {
-      const membersWithInterest = currentGroup.filter(member => 
+      const membersWithInterest = currentGroup.filter(member =>
         member.interests.includes(interest)
       ).length;
       if (membersWithInterest > 1) {
         sharedInterestScore += (membersWithInterest / currentGroup.length) * 20;
       }
     });
-    
+
     // Calculate individual compatibility average
-    const avgCompatibility = currentGroup.reduce((sum, member) => 
+    const avgCompatibility = currentGroup.reduce((sum, member) =>
       sum + member.compatibility, 0) / currentGroup.length;
-    
+
     // Combine scores (60% individual avg + 40% shared interests)
     const totalScore = Math.round((avgCompatibility * 0.6) + (sharedInterestScore * 0.4));
-    
+
     return Math.min(100, Math.max(0, totalScore));
   }, [currentGroup]);
 
@@ -364,12 +365,12 @@ export function SocialMatching() {
       // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
-        const matchesSearch = 
+        const matchesSearch =
           companion.name.toLowerCase().includes(query) ||
           companion.location.toLowerCase().includes(query) ||
           companion.bio.toLowerCase().includes(query) ||
           companion.interests.some(interest => interest.toLowerCase().includes(query));
-        
+
         if (!matchesSearch) return false;
       }
 
@@ -380,7 +381,7 @@ export function SocialMatching() {
 
       // Interest filters
       if (interestFilters.length > 0) {
-        const hasMatchingInterest = interestFilters.some(interest => 
+        const hasMatchingInterest = interestFilters.some(interest =>
           companion.interests.includes(interest)
         );
         if (!hasMatchingInterest) return false;
@@ -435,12 +436,12 @@ export function SocialMatching() {
     // Check if already invited or in group
     const isAlreadyInGroup = currentGroup.some(member => member.id === companion.id);
     const isAlreadyInvited = invitedMembers.some(member => member.id === companion.id);
-    
+
     if (isAlreadyInGroup) {
       toast.error('User is already in your group');
       return;
     }
-    
+
     if (isAlreadyInvited) {
       toast.error('User is already invited');
       return;
@@ -452,7 +453,7 @@ export function SocialMatching() {
       status: 'invited',
       invitedAt: new Date().toISOString()
     };
-    
+
     setInvitedMembers(prev => [...prev, invitedMember]);
     toast.success(`Invitation sent to ${companion.name}!`);
   };
@@ -514,7 +515,7 @@ export function SocialMatching() {
 
   const toggleInterest = (interest) => {
     if (!tempProfileData) return;
-    
+
     setTempProfileData(prev => ({
       ...prev,
       interests: prev.interests.includes(interest)
@@ -586,11 +587,10 @@ export function SocialMatching() {
         <div className="space-y-4">
           {chatMessages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.isSelf ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[70%] p-3 rounded-lg ${
-                msg.isSelf 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'bg-muted text-muted-foreground'
-              }`}>
+              <div className={`max-w-[70%] p-3 rounded-lg ${msg.isSelf
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground'
+                }`}>
                 <p className="text-sm">{msg.message}</p>
                 <p className="text-xs mt-1 opacity-70">{msg.time}</p>
               </div>
@@ -663,11 +663,10 @@ export function SocialMatching() {
                     <AvatarFallback className="text-xs">{msg.avatar}</AvatarFallback>
                   </Avatar>
                 )}
-                <div className={`p-3 rounded-lg ${
-                  msg.isSelf 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-muted'
-                }`}>
+                <div className={`p-3 rounded-lg ${msg.isSelf
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted'
+                  }`}>
                   {!msg.isSelf && (
                     <p className="text-xs font-medium mb-1 text-muted-foreground">{msg.sender}</p>
                   )}
@@ -732,11 +731,11 @@ export function SocialMatching() {
             <User className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-medium">Basic Information</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Full Name *</label>
-              <Input 
+              <Input
                 value={tempProfileData.name}
                 onChange={(e) => setTempProfileData(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Enter your full name"
@@ -744,10 +743,10 @@ export function SocialMatching() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Age *</label>
-              <Input 
+              <Input
                 value={tempProfileData.age}
                 onChange={(e) => setTempProfileData(prev => ({ ...prev, age: parseInt(e.target.value) || 0 }))}
-                type="number" 
+                type="number"
                 placeholder="Your age"
                 min="18"
                 max="100"
@@ -755,7 +754,7 @@ export function SocialMatching() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Location *</label>
-              <Input 
+              <Input
                 value={tempProfileData.location}
                 onChange={(e) => setTempProfileData(prev => ({ ...prev, location: e.target.value }))}
                 placeholder="City, Country"
@@ -763,7 +762,7 @@ export function SocialMatching() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Occupation</label>
-              <Input 
+              <Input
                 value={tempProfileData.occupation}
                 onChange={(e) => setTempProfileData(prev => ({ ...prev, occupation: e.target.value }))}
                 placeholder="Your profession"
@@ -773,10 +772,10 @@ export function SocialMatching() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Bio *</label>
-            <Textarea 
+            <Textarea
               value={tempProfileData.bio}
               onChange={(e) => setTempProfileData(prev => ({ ...prev, bio: e.target.value }))}
-              rows={3} 
+              rows={3}
               placeholder="Tell other travelers about yourself, your travel experiences, and what you're looking for in travel companions..."
               maxLength={500}
             />
@@ -787,13 +786,13 @@ export function SocialMatching() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Languages</label>
-            <Input 
+            <Input
               value={tempProfileData.languages?.join(', ') || ''}
               onChange={(e) => {
                 const languages = e.target.value.split(',').map(lang => lang.trim()).filter(Boolean);
                 setTempProfileData(prev => ({ ...prev, languages }));
               }}
-              placeholder="English, Spanish, French..." 
+              placeholder="English, Spanish, French..."
             />
             <p className="text-xs text-muted-foreground">Separate multiple languages with commas</p>
           </div>
@@ -837,12 +836,12 @@ export function SocialMatching() {
             <Plane className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-medium">Travel Preferences</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Travel Style</label>
-              <Select 
-                value={tempProfileData.travelStyle || ''} 
+              <Select
+                value={tempProfileData.travelStyle || ''}
                 onValueChange={(value) => setTempProfileData(prev => ({ ...prev, travelStyle: value }))}
               >
                 <SelectTrigger>
@@ -861,8 +860,8 @@ export function SocialMatching() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Budget Preference</label>
-              <Select 
-                value={tempProfileData.budgetPreference || ''} 
+              <Select
+                value={tempProfileData.budgetPreference || ''}
                 onValueChange={(value) => setTempProfileData(prev => ({ ...prev, budgetPreference: value }))}
               >
                 <SelectTrigger>
@@ -879,8 +878,8 @@ export function SocialMatching() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Preferred Group Size</label>
-              <Select 
-                value={tempProfileData.groupSize || ''} 
+              <Select
+                value={tempProfileData.groupSize || ''}
                 onValueChange={(value) => setTempProfileData(prev => ({ ...prev, groupSize: value }))}
               >
                 <SelectTrigger>
@@ -898,8 +897,8 @@ export function SocialMatching() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Travel Experience</label>
-              <Select 
-                value={tempProfileData.travelExperience || ''} 
+              <Select
+                value={tempProfileData.travelExperience || ''}
                 onValueChange={(value) => setTempProfileData(prev => ({ ...prev, travelExperience: value }))}
               >
                 <SelectTrigger>
@@ -922,30 +921,30 @@ export function SocialMatching() {
             <Star className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-medium">Travel Experience</h3>
           </div>
-          
+
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Favorite Destinations</label>
-              <Input 
+              <Input
                 value={tempProfileData.favoriteDestinations?.join(', ') || ''}
                 onChange={(e) => {
                   const destinations = e.target.value.split(',').map(dest => dest.trim()).filter(Boolean);
                   setTempProfileData(prev => ({ ...prev, favoriteDestinations: destinations }));
                 }}
-                placeholder="Japan, Iceland, New Zealand..." 
+                placeholder="Japan, Iceland, New Zealand..."
               />
               <p className="text-xs text-muted-foreground">Places you've visited and loved</p>
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Travel Bucket List</label>
-              <Input 
+              <Input
                 value={tempProfileData.bucketList?.join(', ') || ''}
                 onChange={(e) => {
                   const bucketList = e.target.value.split(',').map(item => item.trim()).filter(Boolean);
                   setTempProfileData(prev => ({ ...prev, bucketList: bucketList }));
                 }}
-                placeholder="Northern Lights, Safari in Africa, Machu Picchu..." 
+                placeholder="Northern Lights, Safari in Africa, Machu Picchu..."
               />
               <p className="text-xs text-muted-foreground">Places and experiences you want to have</p>
             </div>
@@ -961,11 +960,11 @@ export function SocialMatching() {
             <Phone className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-medium">Contact Information</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Email Address</label>
-              <Input 
+              <Input
                 value={tempProfileData.email || ''}
                 onChange={(e) => setTempProfileData(prev => ({ ...prev, email: e.target.value }))}
                 type="email"
@@ -975,7 +974,7 @@ export function SocialMatching() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Phone Number</label>
-              <Input 
+              <Input
                 value={tempProfileData.phone || ''}
                 onChange={(e) => setTempProfileData(prev => ({ ...prev, phone: e.target.value }))}
                 type="tel"
@@ -985,7 +984,7 @@ export function SocialMatching() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Website</label>
-              <Input 
+              <Input
                 value={tempProfileData.website || ''}
                 onChange={(e) => setTempProfileData(prev => ({ ...prev, website: e.target.value }))}
                 type="url"
@@ -1001,17 +1000,17 @@ export function SocialMatching() {
             <Share2 className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-medium">Social Media</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium flex items-center space-x-2">
                 <Instagram className="w-4 h-4" />
                 <span>Instagram</span>
               </label>
-              <Input 
+              <Input
                 value={tempProfileData.socialMedia?.instagram || ''}
-                onChange={(e) => setTempProfileData(prev => ({ 
-                  ...prev, 
+                onChange={(e) => setTempProfileData(prev => ({
+                  ...prev,
                   socialMedia: { ...prev.socialMedia, instagram: e.target.value }
                 }))}
                 placeholder="@yourusername"
@@ -1023,10 +1022,10 @@ export function SocialMatching() {
                 <Facebook className="w-4 h-4" />
                 <span>Facebook</span>
               </label>
-              <Input 
+              <Input
                 value={tempProfileData.socialMedia?.facebook || ''}
-                onChange={(e) => setTempProfileData(prev => ({ 
-                  ...prev, 
+                onChange={(e) => setTempProfileData(prev => ({
+                  ...prev,
                   socialMedia: { ...prev.socialMedia, facebook: e.target.value }
                 }))}
                 placeholder="your.facebook.profile"
@@ -1038,10 +1037,10 @@ export function SocialMatching() {
                 <Twitter className="w-4 h-4" />
                 <span>Twitter</span>
               </label>
-              <Input 
+              <Input
                 value={tempProfileData.socialMedia?.twitter || ''}
-                onChange={(e) => setTempProfileData(prev => ({ 
-                  ...prev, 
+                onChange={(e) => setTempProfileData(prev => ({
+                  ...prev,
                   socialMedia: { ...prev.socialMedia, twitter: e.target.value }
                 }))}
                 placeholder="@yourusername"
@@ -1056,14 +1055,14 @@ export function SocialMatching() {
             <AlertCircle className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-medium">Emergency Contact</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Contact Name</label>
-              <Input 
+              <Input
                 value={tempProfileData.emergencyContact?.name || ''}
-                onChange={(e) => setTempProfileData(prev => ({ 
-                  ...prev, 
+                onChange={(e) => setTempProfileData(prev => ({
+                  ...prev,
                   emergencyContact: { ...prev.emergencyContact, name: e.target.value }
                 }))}
                 placeholder="Full name"
@@ -1072,10 +1071,10 @@ export function SocialMatching() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Relationship</label>
-              <Input 
+              <Input
                 value={tempProfileData.emergencyContact?.relationship || ''}
-                onChange={(e) => setTempProfileData(prev => ({ 
-                  ...prev, 
+                onChange={(e) => setTempProfileData(prev => ({
+                  ...prev,
                   emergencyContact: { ...prev.emergencyContact, relationship: e.target.value }
                 }))}
                 placeholder="Sister, Parent, Friend..."
@@ -1084,10 +1083,10 @@ export function SocialMatching() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Phone Number</label>
-              <Input 
+              <Input
                 value={tempProfileData.emergencyContact?.phone || ''}
-                onChange={(e) => setTempProfileData(prev => ({ 
-                  ...prev, 
+                onChange={(e) => setTempProfileData(prev => ({
+                  ...prev,
                   emergencyContact: { ...prev.emergencyContact, phone: e.target.value }
                 }))}
                 type="tel"
@@ -1106,17 +1105,17 @@ export function SocialMatching() {
             <Shield className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-medium">Privacy & Visibility</h3>
           </div>
-          
+
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg bg-muted/20">
               <div className="space-y-1">
                 <h4 className="font-medium">Profile Visibility</h4>
                 <p className="text-sm text-muted-foreground">Control who can see your profile</p>
               </div>
-              <Select 
-                value={tempProfileData.privacy?.profileVisibility || 'public'} 
-                onValueChange={(value) => setTempProfileData(prev => ({ 
-                  ...prev, 
+              <Select
+                value={tempProfileData.privacy?.profileVisibility || 'public'}
+                onValueChange={(value) => setTempProfileData(prev => ({
+                  ...prev,
                   privacy: { ...prev.privacy, profileVisibility: value }
                 }))}
               >
@@ -1133,7 +1132,7 @@ export function SocialMatching() {
 
             <div className="space-y-3">
               <h4 className="font-medium">Contact Information Visibility</h4>
-              
+
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 border border-border/50 rounded-lg">
                   <div className="flex items-center space-x-3">
@@ -1142,8 +1141,8 @@ export function SocialMatching() {
                   </div>
                   <Checkbox
                     checked={tempProfileData.privacy?.showEmail || false}
-                    onCheckedChange={(checked) => setTempProfileData(prev => ({ 
-                      ...prev, 
+                    onCheckedChange={(checked) => setTempProfileData(prev => ({
+                      ...prev,
                       privacy: { ...prev.privacy, showEmail: checked }
                     }))}
                   />
@@ -1156,8 +1155,8 @@ export function SocialMatching() {
                   </div>
                   <Checkbox
                     checked={tempProfileData.privacy?.showPhone || false}
-                    onCheckedChange={(checked) => setTempProfileData(prev => ({ 
-                      ...prev, 
+                    onCheckedChange={(checked) => setTempProfileData(prev => ({
+                      ...prev,
                       privacy: { ...prev.privacy, showPhone: checked }
                     }))}
                   />
@@ -1170,8 +1169,8 @@ export function SocialMatching() {
                   </div>
                   <Checkbox
                     checked={tempProfileData.privacy?.showSocialMedia || false}
-                    onCheckedChange={(checked) => setTempProfileData(prev => ({ 
-                      ...prev, 
+                    onCheckedChange={(checked) => setTempProfileData(prev => ({
+                      ...prev,
                       privacy: { ...prev.privacy, showSocialMedia: checked }
                     }))}
                   />
@@ -1184,8 +1183,8 @@ export function SocialMatching() {
                   </div>
                   <Checkbox
                     checked={tempProfileData.privacy?.allowMessages || false}
-                    onCheckedChange={(checked) => setTempProfileData(prev => ({ 
-                      ...prev, 
+                    onCheckedChange={(checked) => setTempProfileData(prev => ({
+                      ...prev,
                       privacy: { ...prev.privacy, allowMessages: checked }
                     }))}
                   />
@@ -1201,7 +1200,7 @@ export function SocialMatching() {
             <TrendingUp className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-medium">Profile Statistics</h3>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-4 bg-muted/20 rounded-lg border border-border/50 text-center">
               <div className="font-semibold text-2xl text-primary">{userProfile.tripsCompleted}</div>
@@ -1293,9 +1292,9 @@ export function SocialMatching() {
           <h3 className="font-medium text-lg">Filters</h3>
           <p className="text-xs text-muted-foreground">Refine your search results</p>
         </div>
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={clearFilters}
           className="text-xs text-muted-foreground hover:text-destructive transition-colors"
         >
@@ -1352,8 +1351,8 @@ export function SocialMatching() {
                         className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                       />
                       <Icon className="w-4 h-4 text-muted-foreground" />
-                      <label 
-                        htmlFor={interest} 
+                      <label
+                        htmlFor={interest}
                         className="text-sm cursor-pointer capitalize flex-1 font-medium"
                       >
                         {interest}
@@ -1518,15 +1517,15 @@ export function SocialMatching() {
               </div>
 
               <div className="flex space-x-2">
-                <Button 
+                <Button
                   onClick={() => handleContactGuide(selectedGuide)}
                   className="flex-1"
                 >
                   <Mail className="w-4 h-4 mr-2" />
                   Contact Guide
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => handleViewOnMap(selectedGuide)}
                   className="flex-1"
                 >
@@ -1614,15 +1613,15 @@ export function SocialMatching() {
               </div>
 
               <div className="flex space-x-2">
-                <Button 
+                <Button
                   onClick={() => handleMessage(selectedCompanion)}
                   className="flex-1"
                 >
                   <MessageCircle className="w-4 h-4 mr-2" />
                   Send Message
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => handleInviteToGroup(selectedCompanion)}
                   className="flex-1"
                 >
@@ -1645,7 +1644,7 @@ export function SocialMatching() {
           <h2 className="text-2xl">Social Travel Hub</h2>
           <p className="text-muted-foreground">Connect with fellow travelers and local guides</p>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
             <DialogTrigger asChild>
@@ -1684,16 +1683,16 @@ export function SocialMatching() {
                   <span>Group Management</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={handleGroupChat}
                   >
                     <MessageCircle className="w-4 h-4 mr-2" />
                     Group Chat
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => setShowInvited(!showInvited)}
                   >
@@ -1725,18 +1724,36 @@ export function SocialMatching() {
                       </div>
                     </div>
                     <p className="text-sm text-muted-foreground mt-3">
-                      {groupCompatibility >= 85 
-                        ? "Excellent compatibility! Great balance of shared and individual interests." 
-                        : groupCompatibility >= 70 
-                        ? "Good compatibility. Some shared interests with room for diverse activities." 
-                        : groupCompatibility >= 50 
-                        ? "Moderate compatibility. Consider adding members with similar interests." 
-                        : "Low compatibility. Try inviting members with more aligned interests."
+                      {groupCompatibility >= 85
+                        ? "Excellent compatibility! Great balance of shared and individual interests."
+                        : groupCompatibility >= 70
+                          ? "Good compatibility. Some shared interests with room for diverse activities."
+                          : groupCompatibility >= 50
+                            ? "Moderate compatibility. Consider adding members with similar interests."
+                            : "Low compatibility. Try inviting members with more aligned interests."
                       }
                     </p>
                     <div className="mt-2 text-xs text-blue-700">
                       Current score: {groupCompatibility} (Average: {Math.round(currentGroup.reduce((sum, member) => sum + member.compatibility, 0) / currentGroup.length)}%, Shared interests bonus)
                     </div>
+                    {/* AI generated overall group compatibility explanation */}
+                    <div className="mt-3">
+                      <Gemini
+                        prompt={`Analyze this travel group of ${currentGroup.length} members:
+                          ${currentGroup
+                            .map(
+                              (m) =>
+                                `${m.name} (${m.compatibility}%), interests: ${m.interests.join(", ")}`
+                            )
+                            .join("\n")}
+                            The overall compatibility score is ${groupCompatibility}%.
+                            Explain briefly:
+                            1. Why the group’s compatibility is at this level.
+                            2. What are their shared strengths.
+                            3. What could improve the collaboration or trip enjoyment.`}
+                      />
+                    </div>
+
                   </div>
 
                   {/* Group Members */}
@@ -1786,6 +1803,18 @@ export function SocialMatching() {
                               </div>
                             </div>
                           </div>
+                          {/* AI summary for each member */}
+                          <div className="mt-2">
+                            <Gemini
+                              prompt={`Analyze compatibility for ${member.name}, age ${member.age}, from ${member.location}.
+                              Their interests: ${member.interests.join(", ")}.
+                              Explain:
+                              1. Why their compatibility is ${member.compatibility}%.
+                              2. What ${userProfile.name} will likely appreciate about them.
+                              3. Provide a one-line overall summary of group fit.`}
+                            />
+                          </div>
+
                           <div className="flex items-center space-x-2">
                             <div className="text-right space-y-1">
                               <Badge className={`px-3 py-1 ${getCompatibilityColor(member.compatibility)}`}>
@@ -1824,80 +1853,98 @@ export function SocialMatching() {
                       </div>
                     ) : (
                       invitedMembers.map((member) => (
-                      <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg bg-yellow-50 border-yellow-200">
-                        <div className="flex items-center space-x-4">
-                          <Avatar>
-                            <AvatarFallback>{member.avatar}</AvatarFallback>
-                          </Avatar>
-                          <div className="space-y-2">
-                            <div>
-                              <h5 className="font-medium">{member.name}</h5>
-                              <div className="flex items-center space-x-3 text-sm text-muted-foreground">
-                                <span>Age {member.age}</span>
-                                <span>•</span>
-                                <span className="flex items-center space-x-1">
-                                  <MapPin className="w-3 h-3" />
-                                  <span>{member.location}</span>
-                                </span>
+                        <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg bg-yellow-50 border-yellow-200">
+                          <div className="flex items-center space-x-4">
+                            <Avatar>
+                              <AvatarFallback>{member.avatar}</AvatarFallback>
+                            </Avatar>
+                            <div className="space-y-2">
+                              <div>
+                                <h5 className="font-medium">{member.name}</h5>
+                                <div className="flex items-center space-x-3 text-sm text-muted-foreground">
+                                  <span>Age {member.age}</span>
+                                  <span>•</span>
+                                  <span className="flex items-center space-x-1">
+                                    <MapPin className="w-3 h-3" />
+                                    <span>{member.location}</span>
+                                  </span>
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Invited {new Date(member.invitedAt).toLocaleDateString()}
+                                </p>
                               </div>
-                              <p className="text-sm text-muted-foreground mt-1">
-                                Invited {new Date(member.invitedAt).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <div className="flex flex-wrap gap-1">
-                              {member.interests.slice(0, 3).map((interest, idx) => {
-                                const Icon = getInterestIcon(interest);
-                                return (
-                                  <Badge key={idx} variant="secondary" className="text-xs flex items-center space-x-1">
-                                    <Icon className="w-3 h-3" />
-                                    <span>{interest}</span>
+                              <div className="flex flex-wrap gap-1">
+                                {member.interests.slice(0, 3).map((interest, idx) => {
+                                  const Icon = getInterestIcon(interest);
+                                  return (
+                                    <Badge key={idx} variant="secondary" className="text-xs flex items-center space-x-1">
+                                      <Icon className="w-3 h-3" />
+                                      <span>{interest}</span>
+                                    </Badge>
+                                  );
+                                })}
+                                {member.interests.length > 3 && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    +{member.interests.length - 3} more
                                   </Badge>
-                                );
-                              })}
-                              {member.interests.length > 3 && (
-                                <Badge variant="secondary" className="text-xs">
-                                  +{member.interests.length - 3} more
-                                </Badge>
-                              )}
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="text-right space-y-1">
-                            <Badge className={`px-3 py-1 ${getCompatibilityColor(member.matchScore)}`}>
-                              {member.matchScore}% match
-                            </Badge>
-                            <div className="flex items-center space-x-1">
-                              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                                Pending
+                          <div className="flex items-center space-x-2">
+                            <div className="text-right space-y-1">
+                              <Badge className={`px-3 py-1 ${getCompatibilityColor(member.matchScore)}`}>
+                                {member.matchScore}% match
                               </Badge>
+                              <div className="flex items-center space-x-1">
+                                <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                                  Pending
+                                </Badge>
+                              </div>
+                            </div>
+                            <div className="flex flex-col space-y-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleAcceptInvite(member.id)}
+                                className="text-green-600 hover:text-green-700"
+                              >
+                                <Check className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleCancelInvite(member.id)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <X className="w-4 h-4" />
+                              </Button>
                             </div>
                           </div>
-                          <div className="flex flex-col space-y-1">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleAcceptInvite(member.id)}
-                              className="text-green-600 hover:text-green-700"
-                            >
-                              <Check className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleCancelInvite(member.id)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <X className="w-4 h-4" />
-                            </Button>
-                          </div>
                         </div>
-                      </div>
                       ))
                     )}
                   </div>
                 </>
               )}
+              {/* Final AI Summary and Trip Suggestion */}
+              <div className="bg-gray-50 border border-blue-100 rounded-lg p-4 mt-6">
+                <h4 className="font-medium text-blue-700 mb-2">AI Summary & Trip Suggestions</h4>
+                <Gemini
+                  prompt={`Based on the current group composition and their interests:
+${currentGroup
+                      .map(
+                        (m) =>
+                          `${m.name}: ${m.interests.join(", ")}`
+                      )
+                      .join("\n")}
+Suggest:
+1. A short summary of group synergy and travel style.
+2. 2-3 trip destination ideas that fit the group's interests.
+3. One activity that would help everyone bond.`}
+                />
+              </div>
+
             </CardContent>
           </Card>
         </TabsContent>
@@ -1908,8 +1955,8 @@ export function SocialMatching() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search by location, interests, name..." 
+              <Input
+                placeholder="Search by location, interests, name..."
                 className="pl-10"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -2065,16 +2112,16 @@ export function SocialMatching() {
                         </Badge>
                         <div className="space-y-2">
                           <div className="flex space-x-2">
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               variant="outline"
                               onClick={() => handleMessage(companion)}
                             >
                               <MessageCircle className="w-4 h-4 mr-1" />
                               Message
                             </Button>
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               onClick={() => handleInviteToGroup(companion)}
                             >
                               <UserPlus className="w-4 h-4 mr-1" />
@@ -2154,8 +2201,8 @@ export function SocialMatching() {
                         <p className="text-xs text-muted-foreground">per day</p>
                       </div>
                       <div className="space-y-2">
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
                           onClick={() => handleViewGuideProfile(guide)}
                           className="w-full"
@@ -2164,7 +2211,7 @@ export function SocialMatching() {
                           View Profile
                         </Button>
                         <div className="flex space-x-1">
-                          <Button 
+                          <Button
                             size="sm"
                             onClick={() => handleContactGuide(guide)}
                             className="flex-1"
@@ -2172,7 +2219,7 @@ export function SocialMatching() {
                             <Mail className="w-4 h-4 mr-1" />
                             Contact
                           </Button>
-                          <Button 
+                          <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleViewOnMap(guide)}
