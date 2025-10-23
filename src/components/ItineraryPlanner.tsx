@@ -1,28 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from './ui/dialog';
 import { ScrollArea } from './ui/scroll-area';
-import { Separator } from './ui/separator';
 import { useCart } from './CartContext';
 import { PaymentCheckout } from './PaymentCheckout';
-import { toast } from 'sonner@2.0.3';
-import { 
-  Calendar, 
-  MapPin, 
-  Clock, 
-  RefreshCw, 
+import { Toaster, toast } from 'sonner@2.0.3';
+import {
+  Calendar,
+  MapPin,
+  Clock,
+  RefreshCw,
   Heart,
   Zap,
   Mountain,
-  Coffee,
   Camera,
   Utensils,
   Music,
-  ShoppingBag,
   Waves,
   Sun,
   Compass,
@@ -32,12 +28,11 @@ import {
   Star,
   Users,
   Phone,
-  ExternalLink,
   Plus,
   Minus,
   Map,
   Navigation,
-  IndianRupee
+  IndianRupee,
 } from 'lucide-react';
 
 export function ItineraryPlanner() {
@@ -46,7 +41,9 @@ export function ItineraryPlanner() {
   const [isMapOpen, setIsMapOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [isPaymentOpen, setIsPaymentOpen] = useState(false);
-  
+  const [hasReshuffled, setHasReshuffled] = useState(false);
+  const [isCartAnimating, setIsCartAnimating] = useState(false);
+
   const { cart, addToCart, removeFromCart, getCartTotal, getCartCount } = useCart();
 
   const moods = [
@@ -59,7 +56,7 @@ export function ItineraryPlanner() {
     { id: 'explorer', label: 'Explorer', icon: Compass, color: 'bg-emerald-100 text-emerald-600' },
     { id: 'local', label: 'Local', icon: Home, color: 'bg-amber-100 text-amber-600' },
   ];
-
+  
   const itineraryData = {
     relaxing: {
       day1: {
@@ -179,6 +176,47 @@ export function ItineraryPlanner() {
             coordinates: [15.6167, 73.7333]
           }
         ]
+      },
+      day3: {
+        title: "Ultimate Serenity",
+        activities: [
+          {
+            time: "8:00 AM",
+            title: "Guided Meditation at Villa",
+            description: "Private meditation session in a serene garden",
+            duration: "1 hour",
+            type: "wellness",
+            price: 1500,
+            location: "Private Villa, Assagao",
+            rating: 4.9,
+            bookable: true,
+            coordinates: [15.5925, 73.7595]
+          },
+          {
+            time: "12:00 PM",
+            title: "Private Pool Day & Lunch",
+            description: "Relax by a private pool with a catered lunch",
+            duration: "4 hours",
+            type: "leisure",
+            price: 7000,
+            location: "Private Villa",
+            rating: 4.8,
+            bookable: true,
+            coordinates: [15.5925, 73.7595]
+          },
+          {
+            time: "5:00 PM",
+            title: "Sunset Houseboat Cruise",
+            description: "Gentle cruise on the Sal backwaters at sunset",
+            duration: "2 hours",
+            type: "leisure",
+            price: 4500,
+            location: "Sal River",
+            rating: 4.7,
+            bookable: true,
+            coordinates: [15.2285, 73.9351]
+          }
+        ]
       }
     },
     adventurous: {
@@ -263,6 +301,47 @@ export function ItineraryPlanner() {
             coordinates: [15.4000, 74.0000]
           }
         ]
+      },
+      day3: {
+        title: "Coastal Thrills",
+        activities: [
+          {
+            time: "9:00 AM",
+            title: "Canyoning at Netravali",
+            description: "Jump, slide, and swim through jungle canyons",
+            duration: "5 hours",
+            type: "adventure",
+            price: 4000,
+            location: "Netravali Wildlife Sanctuary",
+            rating: 4.8,
+            bookable: true,
+            coordinates: [15.0116, 74.2497]
+          },
+          {
+            time: "3:00 PM",
+            title: "Bungee Jumping",
+            description: "Leap from a high platform over the Mayem Lake",
+            duration: "1 hour",
+            type: "adventure",
+            price: 3500,
+            location: "Mayem Lake, Bicholim",
+            rating: 4.7,
+            bookable: true,
+            coordinates: [15.5583, 73.9408]
+          },
+          {
+            time: "7:00 PM",
+            title: "Go-Karting at Arpora",
+            description: "Race high-speed karts on a professional track",
+            duration: "1.5 hours",
+            type: "adventure",
+            price: 1000,
+            location: "Arpora",
+            rating: 4.4,
+            bookable: true,
+            coordinates: [15.5682, 73.7554]
+          }
+        ]
       }
     },
     social: {
@@ -301,6 +380,88 @@ export function ItineraryPlanner() {
             type: "social",
             price: 2200,
             location: "Mandovi River",
+            rating: 4.5,
+            bookable: true,
+            coordinates: [15.4909, 73.8278]
+          }
+        ]
+      },
+      day2: {
+        title: "Party & People",
+        activities: [
+          {
+            time: "11:00 AM",
+            title: "Backpacker Hostel Meetup",
+            description: "Join the daily meetup at a popular hostel for brunch & games",
+            duration: "2 hours",
+            type: "social",
+            price: 600,
+            location: "The Hosteller, Anjuna",
+            rating: 4.6,
+            bookable: true,
+            coordinates: [15.5735, 73.7407]
+          },
+          {
+            time: "4:00 PM",
+            title: "Beach Party at Curlies",
+            description: "Experience the iconic beach party scene with live DJs",
+            duration: "4 hours",
+            type: "social",
+            price: 1000,
+            location: "Curlies Beach Shack, Anjuna",
+            rating: 4.3,
+            bookable: true,
+            coordinates: [15.5735, 73.7407]
+          },
+          {
+            time: "9:00 PM",
+            title: "Clubbing at Titos Lane",
+            description: "Bar hop and dance the night away at Goa's most famous party street",
+            duration: "3 hours",
+            type: "social",
+            price: 2000,
+            location: "Titos Lane, Baga",
+            rating: 4.2,
+            bookable: true,
+            coordinates: [15.5537, 73.7525]
+          }
+        ]
+      },
+      day3: {
+        title: "Connections & Fun",
+        activities: [
+          {
+            time: "10:00 AM",
+            title: "Group Surf Lesson",
+            description: "Learn to surf with a group of beginners",
+            duration: "2.5 hours",
+            type: "social",
+            price: 1800,
+            location: "Ashwem Beach",
+            rating: 4.7,
+            bookable: true,
+            coordinates: [15.6375, 73.7224]
+          },
+          {
+            time: "2:00 PM",
+            title: "Local Market Barter Challenge",
+            description: "Team up and find items in a fun barter challenge at Mapusa Market",
+            duration: "2 hours",
+            type: "social",
+            price: 300,
+            location: "Mapusa Market",
+            rating: 4.4,
+            bookable: true,
+            coordinates: [15.5909, 73.8081]
+          },
+          {
+            time: "7:00 PM",
+            title: "Pub Crawl in Panaji",
+            description: "Guided tour of the best local bars and pubs in the capital city",
+            duration: "3 hours",
+            type: "social",
+            price: 1200,
+            location: "Panaji",
             rating: 4.5,
             bookable: true,
             coordinates: [15.4909, 73.8278]
@@ -349,6 +510,88 @@ export function ItineraryPlanner() {
             coordinates: [15.5057, 73.9135]
           }
         ]
+      },
+      day2: {
+        title: "Temples & Traditions",
+        activities: [
+          {
+            time: "10:00 AM",
+            title: "Visit Mangeshi Temple",
+            description: "Explore one of Goa's most prominent Hindu temples",
+            duration: "2 hours",
+            type: "culture",
+            price: 500,
+            location: "Mangeshi Village, Ponda",
+            rating: 4.6,
+            bookable: true,
+            coordinates: [15.4206, 73.9696]
+          },
+          {
+            time: "1:00 PM",
+            title: "Goan Folk Dance Performance",
+            description: "Watch a live performance of traditional Goan folk dances with lunch",
+            duration: "2.5 hours",
+            type: "culture",
+            price: 1500,
+            location: "Cultural Center, Ponda",
+            rating: 4.7,
+            bookable: true,
+            coordinates: [15.4012, 74.0134]
+          },
+          {
+            time: "4:00 PM",
+            title: "Reis Magos Fort Tour",
+            description: "Discover the history of this beautifully restored riverside fort",
+            duration: "1.5 hours",
+            type: "culture",
+            price: 200,
+            location: "Reis Magos",
+            rating: 4.5,
+            bookable: true,
+            coordinates: [15.4947, 73.8058]
+          }
+        ]
+      },
+      day3: {
+        title: "Art & Museums",
+        activities: [
+          {
+            time: "11:00 AM",
+            title: "Goa Chitra Museum",
+            description: "Discover thousands of traditional Goan artifacts",
+            duration: "2.5 hours",
+            type: "culture",
+            price: 300,
+            location: "Benaulim",
+            rating: 4.8,
+            bookable: true,
+            coordinates: [15.2530, 73.9351]
+          },
+          {
+            time: "3:00 PM",
+            title: "Fontainhas Heritage Walk",
+            description: "Explore the colourful Portuguese-style Latin Quarter of Panaji",
+            duration: "2 hours",
+            type: "culture",
+            price: 800,
+            location: "Fontainhas, Panaji",
+            rating: 4.7,
+            bookable: true,
+            coordinates: [15.4975, 73.8290]
+          },
+          {
+            time: "7:00 PM",
+            title: "Classical Sitar Concert",
+            description: "Enjoy an evening of live Indian classical music",
+            duration: "2 hours",
+            type: "culture",
+            price: 750,
+            location: "Kala Academy, Panaji",
+            rating: 4.6,
+            bookable: true,
+            coordinates: [15.4967, 73.8188]
+          }
+        ]
       }
     },
     luxury: {
@@ -387,6 +630,88 @@ export function ItineraryPlanner() {
             type: "luxury",
             price: 6500,
             location: "Thalassa, Vagator",
+            rating: 4.7,
+            bookable: true,
+            coordinates: [15.5833, 73.7333]
+          }
+        ]
+      },
+      day2: {
+        title: "Casino Royale Night",
+        activities: [
+          {
+            time: "11:00 AM",
+            title: "Designer Shopping",
+            description: "Private appointments at high-end boutiques in Panaji",
+            duration: "3 hours",
+            type: "luxury",
+            price: 1000,
+            location: "Panaji",
+            rating: 4.4,
+            bookable: true,
+            coordinates: [15.4909, 73.8278]
+          },
+          {
+            time: "4:00 PM",
+            title: "High Tea at the Taj",
+            description: "Elegant high tea service with ocean views at the Taj Fort Aguada",
+            duration: "2 hours",
+            type: "luxury",
+            price: 3000,
+            location: "Taj Fort Aguada, Candolim",
+            rating: 4.8,
+            bookable: true,
+            coordinates: [15.5029, 73.7667]
+          },
+          {
+            time: "8:00 PM",
+            title: "VIP Casino Experience",
+            description: "VIP entry, private tables, and unlimited drinks at Deltin Royale",
+            duration: "5 hours",
+            type: "luxury",
+            price: 10000,
+            location: "Deltin Royale, Mandovi River",
+            rating: 4.6,
+            bookable: true,
+            coordinates: [15.4984, 73.8239]
+          }
+        ]
+      },
+      day3: {
+        title: "Sky & Sea Indulgence",
+        activities: [
+          {
+            time: "9:00 AM",
+            title: "Private Helicopter Tour",
+            description: "Breathtaking aerial views of Goa's coastline and ghats",
+            duration: "1 hour",
+            type: "luxury",
+            price: 25000,
+            location: "Goa Airport",
+            rating: 4.9,
+            bookable: true,
+            coordinates: [15.3803, 73.8310]
+          },
+          {
+            time: "1:00 PM",
+            title: "Private Beach Picnic",
+            description: "A gourmet picnic with a private chef on a secluded beach",
+            duration: "3 hours",
+            type: "luxury",
+            price: 12000,
+            location: "Butterfly Beach",
+            rating: 4.8,
+            bookable: true,
+            coordinates: [15.0006, 73.9856]
+          },
+          {
+            time: "7:00 PM",
+            title: "Exclusive Club Night",
+            description: "Private table at an exclusive, invitation-only Goan club",
+            duration: "4 hours",
+            type: "luxury",
+            price: 18000,
+            location: "Secret Location, Vagator",
             rating: 4.7,
             bookable: true,
             coordinates: [15.5833, 73.7333]
@@ -433,6 +758,88 @@ export function ItineraryPlanner() {
             rating: 4.7,
             bookable: true,
             coordinates: [15.5735, 73.7407]
+          }
+        ]
+      },
+      day2: {
+        title: "Seafood & Spirits",
+        activities: [
+          {
+            time: "8:00 AM",
+            title: "Local Fish Market Tour",
+            description: "Visit the bustling wholesale fish market in Margao",
+            duration: "2 hours",
+            type: "food",
+            price: 500,
+            location: "Margao Fish Market",
+            rating: 4.3,
+            bookable: true,
+            coordinates: [15.2754, 73.9610]
+          },
+          {
+            time: "11:00 AM",
+            title: "Goan Fish Curry Masterclass",
+            description: "Learn the secrets to the perfect Goan Prawn Curry",
+            duration: "3 hours",
+            type: "food",
+            price: 2500,
+            location: "Siolim Cooking School",
+            rating: 4.8,
+            bookable: true,
+            coordinates: [15.6022, 73.7788]
+          },
+          {
+            time: "5:00 PM",
+            title: "Feni & Cashew Tasting",
+            description: "Tour a traditional distillery and taste local Feni spirits",
+            duration: "2 hours",
+            type: "food",
+            price: 1200,
+            location: "Local Distillery, Ponda",
+            rating: 4.5,
+            bookable: true,
+            coordinates: [15.4012, 74.0134]
+          }
+        ]
+      },
+      day3: {
+        title: "Modern & Traditional Tastes",
+        activities: [
+          {
+            time: "10:00 AM",
+            title: "Assagao Cafe Crawl",
+            description: "Explore the trendiest brunch spots and cafes in 'Goa's Brooklyn'",
+            duration: "3 hours",
+            type: "food",
+            price: 1800,
+            location: "Assagao",
+            rating: 4.6,
+            bookable: true,
+            coordinates: [15.5925, 73.7595]
+          },
+          {
+            time: "2:00 PM",
+            title: "Portuguese Bakery Tour",
+            description: "Taste traditional Goan sweets and breads like Pao and Bebinca",
+            duration: "2 hours",
+            type: "food",
+            price: 800,
+            location: "Old Panaji",
+            rating: 4.7,
+            bookable: true,
+            coordinates: [15.4909, 73.8278]
+          },
+          {
+            time: "8:00 PM",
+            title: "Modern Goan Tasting Menu",
+            description: "Experience innovative Goan cuisine at a top-rated restaurant",
+            duration: "3 hours",
+            type: "food",
+            price: 4500,
+            location: "The Black Sheep Bistro, Panaji",
+            rating: 4.8,
+            bookable: true,
+            coordinates: [15.4967, 73.8258]
           }
         ]
       }
@@ -541,6 +948,47 @@ export function ItineraryPlanner() {
             rating: 4.3,
             bookable: true,
             coordinates: [15.5735, 73.7407]
+          }
+        ]
+      },
+      day3: {
+        title: "Deep Goa Discovery",
+        activities: [
+          {
+            time: "8:00 AM",
+            title: "Tambdi Surla Temple Visit",
+            description: "Trek through the jungle to find a hidden 12th-century temple",
+            duration: "4 hours",
+            type: "adventure",
+            price: 1800,
+            location: "Bhagwan Mahavir Sanctuary",
+            rating: 4.8,
+            bookable: true,
+            coordinates: [15.4542, 74.2541]
+          },
+          {
+            time: "2:00 PM",
+            title: "Hike to a Secret Waterfall",
+            description: "Guided hike to a lesser-known waterfall for a private swim",
+            duration: "3 hours",
+            type: "nature",
+            price: 1200,
+            location: "Netravali",
+            rating: 4.6,
+            bookable: true,
+            coordinates: [15.0116, 74.2497]
+          },
+          {
+            time: "7:00 PM",
+            title: "Dinner in a Local Village",
+            description: "Authentic meal in a local village, far from the tourist trail",
+            duration: "2.5 hours",
+            type: "food",
+            price: 900,
+            location: "Remote Village, South Goa",
+            rating: 4.9,
+            bookable: true,
+            coordinates: [15.1500, 74.1000]
           }
         ]
       }
@@ -659,44 +1107,220 @@ export function ItineraryPlanner() {
             localGuide: "Carmen Rodrigues"
           }
         ]
+      },
+      day3: {
+        title: "Community & Craft",
+        activities: [
+          {
+            time: "8:00 AM",
+            title: "Poder (Goan Bread) Making",
+            description: "Visit a traditional Goan bakery and learn to make Pao",
+            duration: "2 hours",
+            type: "local",
+            price: 700,
+            location: "Local Bakery, Saligao",
+            rating: 4.8,
+            bookable: true,
+            coordinates: [15.5667, 73.7667],
+            localGuide: "Jose Braganza"
+          },
+          {
+            time: "11:00 AM",
+            title: "Coir Weaving Workshop",
+            description: "Learn the traditional craft of weaving coconut coir mats",
+            duration: "2.5 hours",
+            type: "local",
+            price: 600,
+            location: "Craft Village, Canacona",
+            rating: 4.6,
+            bookable: true,
+            coordinates: [15.0168, 74.0195],
+            localGuide: "Anita Gaonkar"
+          },
+          {
+            time: "5:00 PM",
+            title: "Attend a Local Football Match",
+            description: "Experience Goa's passion for football with local fans at a village game",
+            duration: "2 hours",
+            type: "local",
+            price: 100,
+            location: "Village Ground, Varca",
+            rating: 4.7,
+            bookable: true,
+            coordinates: [15.2285, 73.9351],
+            localGuide: "Rohan Fernandes"
+          }
+        ]
       }
     }
   };
 
+  const [shuffledItinerary, setShuffledItinerary] = useState<Record<string, any>>(itineraryData);
+
   const getCurrentItinerary = () => {
-    return itineraryData[selectedMood as keyof typeof itineraryData]?.[selectedDay as keyof typeof itineraryData.relaxing] || itineraryData.explorer.day1;
+    const itinerary = shuffledItinerary[selectedMood as keyof typeof shuffledItinerary]?.[
+      selectedDay as keyof typeof shuffledItinerary.relaxing
+    ];
+    
+    // This fallback prevents the app from crashing if "day3" has no data
+    return itinerary || { title: "No Activities Planned", activities: [] };
   };
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case 'wellness': return Heart;
-      case 'food': return Utensils;
-      case 'leisure': return Waves;
-      case 'adventure': return Mountain;
-      case 'culture': return Camera;
-      case 'nature': return Mountain;
-      case 'local': return Home;
-      case 'mixed': return Compass;
-      case 'social': return Music;
-      default: return MapPin;
+      case 'wellness':
+        return Heart;
+      case 'food':
+        return Utensils;
+      case 'leisure': // <-- CORRECTED TYPO
+        return Waves;
+      case 'adventure':
+        return Mountain;
+      case 'culture':
+        return Camera;
+      case 'nature':
+        return Mountain;
+      case 'local':
+        return Home;
+      case 'mixed':
+        return Compass;
+      case 'social':
+        return Music;
+      default:
+        return MapPin;
     }
   };
 
-  const bookActivity = (activity) => {
-    addToCart(activity);
-    toast.success(`${activity.title} added to cart! Click cart to checkout.`);
+  const triggerCartAnimation = () => {
+    setIsCartAnimating(true);
+    setTimeout(() => {
+      setIsCartAnimating(false);
+    }, 300); // Must match animation duration
   };
 
-  const viewOnMap = (activity) => {
+  const bookActivity = (activity: any) => {
+    addToCart(activity);
+    toast.success(`${activity.title} added to cart! Click cart to checkout.`, {
+      duration: 2000,
+    });
+    triggerCartAnimation();
+  };
+
+  const handleAddToCart = (activity: any) => {
+    addToCart(activity);
+    toast.success(`${activity.title} added to cart!`, {
+      duration: 2000,
+    });
+    triggerCartAnimation();
+  };
+
+  const viewOnMap = (activity: any) => {
     setSelectedLocation(activity);
     setIsMapOpen(true);
   };
 
-  const reshuffleItinerary = () => {
-    toast.success(`AI is reshuffling your itinerary for a more ${selectedMood} experience...`);
+  const parseTime = (timeStr: string): number => {
+    const [time, modifier] = timeStr.split(' ');
+    let [hours, minutes] = time.split(':').map(Number);
+
+    if (hours === 12) {
+      hours = modifier === 'AM' ? 0 : 12;
+    } else if (modifier === 'PM') {
+      hours += 12;
+    }
+    
+    return hours * 60 + (minutes || 0);
   };
 
-  const MapView = ({ activity }) => (
+  const getTimeOfDay = (timeStr: string): 'morning' | 'afternoon' | 'evening' => {
+    const totalMinutes = parseTime(timeStr);
+    
+    if (totalMinutes < 12 * 60) {
+      return 'morning';
+    }
+    if (totalMinutes < 17 * 60) {
+      return 'afternoon';
+    }
+    return 'evening';
+  };
+  
+  const reshuffleItinerary = () => {
+    const moodKey = selectedMood as keyof typeof itineraryData;
+    // Use the *original* data as the source to prevent reshuffling an empty shuffle
+    const sourceItinerary = itineraryData[moodKey as keyof typeof itineraryData];
+
+    if (!sourceItinerary) return;
+
+    const shuffle = <T,>(arr: T[]): T[] => {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    };
+
+    // 1. Get ALL activities for the mood from the *original* data
+    const allActivities: Record<'morning' | 'afternoon' | 'evening', any[]> = {
+      morning: [],
+      afternoon: [],
+      evening: [],
+    };
+
+    Object.values(sourceItinerary).forEach((day: any) => {
+      day.activities.forEach((activity: any) => {
+        allActivities[getTimeOfDay(activity.time)].push(activity);
+      });
+    });
+
+    // 2. Shuffle each time bucket
+    allActivities.morning = shuffle(allActivities.morning);
+    allActivities.afternoon = shuffle(allActivities.afternoon);
+    allActivities.evening = shuffle(allActivities.evening);
+
+    // 3. Create a new itinerary structure, distributing activities across ALL 3 DAYS
+    const newMoodItinerary: Record<string, { title: string; activities: any[] }> = {
+      day1: { title: `${sourceItinerary.day1.title} (Reshuffled)`, activities: [] },
+      // Use sourceItinerary.day2?.title for safety, provide a fallback
+      day2: { title: `${sourceItinerary.day2?.title || 'Day 2 Adventure'} (Reshuffled)`, activities: [] },
+      day3: { title: `${sourceItinerary.day3?.title || 'Extra Fun Day'} (Reshuffled)`, activities: [] },
+    };
+    
+    // 4. Distribute activities evenly across days
+    const allShuffledActivities = [
+      ...allActivities.morning, 
+      ...allActivities.afternoon, 
+      ...allActivities.evening
+    ];
+    
+    let dayIndex = 0;
+    const dayKeys = ['day1', 'day2', 'day3'];
+
+    allShuffledActivities.forEach((activity) => {
+      // Round-robin distribution
+      const targetDayKey = dayKeys[dayIndex % 3];
+      newMoodItinerary[targetDayKey].activities.push(activity);
+      dayIndex++;
+    });
+
+    // 5. Sort activities within each day by time to maintain order
+    dayKeys.forEach(dayKey => {
+      newMoodItinerary[dayKey].activities.sort((a, b) => parseTime(a.time) - parseTime(b.time));
+    });
+
+    setShuffledItinerary((prev) => ({
+      ...prev,
+      [moodKey]: newMoodItinerary,
+    }));
+    
+    setHasReshuffled(true);
+    toast.success(`✨ Your ${selectedMood} itinerary has been reshuffled across all 3 days!`, {
+      duration: 2000,
+    });
+  };
+
+
+  const MapView = ({ activity }: { activity: any }) => (
     <div className="space-y-4">
       <div className="h-64 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center">
         <div className="text-center space-y-2">
@@ -725,20 +1349,28 @@ export function ItineraryPlanner() {
 
   return (
     <div className="space-y-6">
+      <Toaster position="bottom-right" />
+
       {/* Header with Cart */}
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <h2 className="text-2xl">Mood Planning</h2>
           <p className="text-muted-foreground">AI adapts your trip based on your daily mood</p>
         </div>
-        
+
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline" className="relative">
+            <Button
+              variant="outline"
+              className={`relative transition-transform duration-300 ease-out ${
+                isCartAnimating ? 'scale-110' : 'scale-100'
+              }`}
+            >
               <ShoppingCart className="w-4 h-4 mr-2" />
               Cart ({getCartCount()})
               {getCartCount() > 0 && (
-                <Badge className="absolute -top-2 -right-2 px-1 min-w-[1.25rem] h-5">
+                // <-- MODIFIED: This is the UI fix for the badge -->
+                <Badge className="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 px-1 min-w-[1.25rem] h-5">
                   {getCartCount()}
                 </Badge>
               )}
@@ -747,18 +1379,14 @@ export function ItineraryPlanner() {
           <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>Your Activity Cart</DialogTitle>
-              <DialogDescription>
-                Review and book your selected activities
-              </DialogDescription>
+              <DialogDescription>Review and book your selected activities</DialogDescription>
             </DialogHeader>
             <ScrollArea className="max-h-96">
               <div className="space-y-4">
                 {cart.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    Your cart is empty
-                  </p>
+                  <p className="text-center text-muted-foreground py-8">Your cart is empty</p>
                 ) : (
-                  cart.map((item) => (
+                  cart.map((item: any) => (
                     <div key={item.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div className="flex-1">
                         <h4 className="text-sm font-medium">{item.title}</h4>
@@ -769,11 +1397,7 @@ export function ItineraryPlanner() {
                           <span className="text-xs text-muted-foreground">x {item.quantity || 1}</span>
                         </div>
                       </div>
-                      <Button 
-                        size="sm" 
-                        variant="ghost"
-                        onClick={() => removeFromCart(item.id!)}
-                      >
+                      <Button size="sm" variant="ghost" onClick={() => removeFromCart(item.id!)}>
                         <Minus className="w-4 h-4" />
                       </Button>
                     </div>
@@ -790,10 +1414,7 @@ export function ItineraryPlanner() {
                     <span>{getCartTotal().toLocaleString()}</span>
                   </div>
                 </div>
-                <Button 
-                  className="w-full"
-                  onClick={() => setIsPaymentOpen(true)}
-                >
+                <Button className="w-full" onClick={() => setIsPaymentOpen(true)}>
                   <CreditCard className="w-4 h-4 mr-2" />
                   Proceed to Payment
                 </Button>
@@ -810,9 +1431,7 @@ export function ItineraryPlanner() {
             <Heart className="w-5 h-5" />
             <span>Today's Mood</span>
           </CardTitle>
-          <CardDescription>
-            Select how you're feeling today and AI will adjust your itinerary
-          </CardDescription>
+          <CardDescription>Select how you're feeling today and AI will adjust your itinerary</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
@@ -821,12 +1440,17 @@ export function ItineraryPlanner() {
               return (
                 <button
                   key={mood.id}
-                  onClick={() => setSelectedMood(mood.id)}
+                  onClick={() => {
+                    setSelectedMood(mood.id);
+                    setHasReshuffled(false); 
+                    setSelectedDay('day1'); // Reset to day1 on mood change
+                  }}
                   className={`
                     p-4 rounded-lg text-center transition-all hover:scale-105
-                    ${selectedMood === mood.id 
-                      ? `${mood.color} ring-2 ring-current ring-opacity-30` 
-                      : 'bg-muted text-muted-foreground hover:bg-accent'
+                    ${
+                      selectedMood === mood.id
+                        ? `${mood.color} ring-2 ring-current ring-opacity-30`
+                        : 'bg-muted text-muted-foreground hover:bg-accent'
                     }
                   `}
                 >
@@ -866,101 +1490,105 @@ export function ItineraryPlanner() {
             <span>{getCurrentItinerary().title}</span>
           </CardTitle>
           <CardDescription>
-            Optimized for your {selectedMood} mood
+            {getCurrentItinerary().activities.length > 0 
+              ? `Optimized for your ${selectedMood} mood`
+              : "No activities planned for this day. Try reshuffling!"
+            }
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {getCurrentItinerary().activities.map((activity, index) => {
-              const Icon = getActivityIcon(activity.type);
-              const isBookable = activity.bookable;
-              
-              return (
-                <div key={index} className="flex items-start space-x-4 p-4 rounded-lg border hover:bg-accent/50 transition-colors">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                      <Icon className="w-5 h-5 text-primary" />
-                    </div>
-                  </div>
-                  
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <h4 className="font-medium">{activity.title}</h4>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant="secondary" className="text-xs">
-                          {activity.type}
-                        </Badge>
-                        <span className="text-sm text-muted-foreground">{activity.time}</span>
+            {getCurrentItinerary().activities.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                No activities to display for this day.
+              </p>
+            ) : (
+              getCurrentItinerary().activities.map((activity: any, index: number) => {
+                const Icon = getActivityIcon(activity.type);
+                const isBookable = activity.bookable;
+
+                return (
+                  <div
+                    key={index}
+                    className="flex items-start space-x-4 p-4 rounded-lg border hover:bg-accent/50 transition-colors"
+                  >
+                    <div className="flex-shrink-0">
+                      <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                        <Icon className="w-5 h-5 text-primary" />
                       </div>
                     </div>
-                    
-                    <p className="text-sm text-muted-foreground">{activity.description}</p>
-                    
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4 text-xs text-muted-foreground">
-                        <div className="flex items-center space-x-1">
-                          <Clock className="w-3 h-3" />
-                          <span>{activity.duration}</span>
+
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium">{activity.title}</h4>
+                        <div className="flex items-center space-x-2">
+                          <Badge variant="secondary" className="text-xs">
+                            {activity.type}
+                          </Badge>
+                          <span className="text-sm text-muted-foreground">{activity.time}</span>
                         </div>
-                        {activity.location && (
+                      </div>
+
+                      <p className="text-sm text-muted-foreground">{activity.description}</p>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4 text-xs text-muted-foreground">
                           <div className="flex items-center space-x-1">
-                            <MapPin className="w-3 h-3" />
-                            <span>{activity.location}</span>
+                            <Clock className="w-3 h-3" />
+                            <span>{activity.duration}</span>
                           </div>
-                        )}
-                        {activity.rating && (
-                          <div className="flex items-center space-x-1">
-                            <Star className="w-3 h-3 text-yellow-500 fill-current" />
-                            <span>{activity.rating}</span>
-                          </div>
-                        )}
-                        {activity.localGuide && (
-                          <div className="flex items-center space-x-1">
-                            <Users className="w-3 h-3" />
-                            <span>Guide: {activity.localGuide}</span>
+                          {activity.location && (
+                            <div className="flex items-center space-x-1">
+                              <MapPin className="w-3 h-3" />
+                              <span>{activity.location}</span>
+                            </div>
+                          )}
+                          {activity.rating && (
+                            <div className="flex items-center space-x-1">
+                              <Star className="w-3 h-3 text-yellow-500 fill-current" />
+                              <span>{activity.rating}</span>
+                            </div>
+                          )}
+                          {activity.localGuide && (
+                            <div className="flex items-center space-x-1">
+                              <Users className="w-3 h-3" />
+                              <span>Guide: {activity.localGuide}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {activity.price && (
+                          <div className="flex items-center space-x-1 font-medium text-primary">
+                            <IndianRupee className="w-4 h-4" />
+                            <span>{activity.price.toLocaleString()}</span>
                           </div>
                         )}
                       </div>
-                      
-                      {activity.price && (
-                        <div className="flex items-center space-x-1 font-medium text-primary">
-                          <IndianRupee className="w-4 h-4" />
-                          <span>{activity.price.toLocaleString()}</span>
+
+                      {isBookable && (
+                        <div className="flex items-center space-x-2 pt-2">
+                          <Button size="sm" onClick={() => bookActivity(activity)} className="flex-1">
+                            <CreditCard className="w-4 h-4 mr-2" />
+                            Book Now
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleAddToCart(activity)}
+                          >
+                            <Plus className="w-4 h-4 mr-2" />
+                            Add to Cart
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => viewOnMap(activity)}>
+                            <Map className="w-4 h-4" />
+                          </Button>
                         </div>
                       )}
                     </div>
-
-                    {isBookable && (
-                      <div className="flex items-center space-x-2 pt-2">
-                        <Button 
-                          size="sm" 
-                          onClick={() => bookActivity(activity)}
-                          className="flex-1"
-                        >
-                          <CreditCard className="w-4 h-4 mr-2" />
-                          Book Now
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => addToCart(activity)}
-                        >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Add to Cart
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => viewOnMap(activity)}
-                        >
-                          <Map className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    )}
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </CardContent>
       </Card>
@@ -975,27 +1603,30 @@ export function ItineraryPlanner() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2 text-sm">
+            {hasReshuffled && (
+              <p className="font-medium text-purple-800">
+                🔄 I've just reshuffled your plan for your '{selectedMood}' mood, distributing activities across all 3 days!
+              </p>
+            )}
             {selectedMood === 'explorer' && (
               <>
                 <p>🌟 Explorer mode combines the best of all worlds - adventure, culture, food, and social experiences!</p>
                 <p>💡 Your itinerary includes diverse activities from sunrise balloons to local cooking classes.</p>
-                <p>🎯 I've balanced high-energy adventures with cultural immersion for the perfect exploration day.</p>
               </>
             )}
             {selectedMood === 'local' && (
               <>
                 <p>🏠 Local mode focuses on authentic experiences with community guides and traditional activities.</p>
                 <p>💡 Every activity connects you directly with local families, artisans, and community members.</p>
-                <p>🎯 Experience Goa like a local - from market tours to family meals and traditional crafts.</p>
               </>
             )}
             {selectedMood === 'relaxing' && (
-              <p>🌊 I've replaced the planned museum visit with extra beach time as it better matches your relaxed vibe.</p>
+              <p>🌊 I've prioritized spa treatments and beach time as it better matches your relaxed vibe.</p>
             )}
             {!['explorer', 'local', 'relaxing'].includes(selectedMood) && (
               <>
-                <p>🎯 Based on your "{selectedMood}" mood, I've prioritized high-energy experiences.</p>
-                <p>💡 Tip: If you feel like switching moods tomorrow, just update your preference and I'll reshuffle everything!</p>
+                <p>🎯 Based on your "{selectedMood}" mood, I've prioritized activities that match that energy.</p>
+                <p>💡 Tip: Click reshuffle to spread these activities across all 3 days!</p>
               </>
             )}
           </div>
@@ -1007,19 +1638,14 @@ export function ItineraryPlanner() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Location & Map</DialogTitle>
-            <DialogDescription>
-              View location details and get directions
-            </DialogDescription>
+            <DialogDescription>View location details and get directions</DialogDescription>
           </DialogHeader>
           <MapView activity={selectedLocation} />
         </DialogContent>
       </Dialog>
 
       {/* Payment Checkout */}
-      <PaymentCheckout 
-        isOpen={isPaymentOpen} 
-        onClose={() => setIsPaymentOpen(false)} 
-      />
+      <PaymentCheckout isOpen={isPaymentOpen} onClose={() => setIsPaymentOpen(false)} />
     </div>
   );
 }
