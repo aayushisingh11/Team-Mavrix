@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
-export default function Gemini({ prompt, onResponse }) {
+export default function Gemini({ prompt, onResponse, variant = "default" }: {
+  prompt: string;
+  onResponse?: (response: string) => void;
+  variant?: "member" | "group" | "trip" | "default";
+}) {
   const [response, setResponse] = useState("");
 
   useEffect(() => {
@@ -18,7 +22,7 @@ export default function Gemini({ prompt, onResponse }) {
         });
         const data = await res.json();
         setResponse(data.response);
-        if (onResponse) onResponse(data.response); // pass to parent
+        if (onResponse) onResponse(data.response);
       } catch (err) {
         setResponse("Error fetching AI response.");
       }
@@ -27,20 +31,41 @@ export default function Gemini({ prompt, onResponse }) {
     fetchAIResponse();
   }, [prompt]);
 
-//   return (
-//     <div className="text-sm mt-2 bg-gray-50 p-2 rounded-md">
-//       {response}
-//     </div>
-//   );
-return (
-  <div className="text-sm mt-2 bg-gray-50 p-3 rounded-md prose prose-sm max-w-none">
-    {response === "Analyzing..." ? (
-      <p className="italic text-gray-500">{response}</p>
-    ) : (
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-        {response}
-      </ReactMarkdown>
-    )}
-  </div>
-);
+  const baseClass =
+    "text-sm rounded-xl prose prose-sm max-w-none overflow-y-auto scrollbar-thin shadow-sm transition-all duration-200";
+
+  const styles = {
+    member: `${baseClass} bg-gray-50 border border-gray-200 p-2 ml-6 scrollbar-thumb-gray-300 scrollbar-track-transparent`,
+    group: `${baseClass} bg-blue-50 border border-blue-200 p-3 mt-3 mx-auto scrollbar-thumb-blue-300 scrollbar-track-transparent`,
+    trip: `${baseClass} bg-green-50 border border-green-200 p-3 mt-4 mx-auto scrollbar-thumb-green-300 scrollbar-track-transparent`,
+    default: `${baseClass} bg-gray-50 border border-gray-200 p-2 mt-2 mx-auto scrollbar-thumb-gray-300 scrollbar-track-transparent`,
+  };
+
+  const boxStyle = {
+    maxHeight:
+      variant === "trip" ? "220px" : variant === "group" ? "180px" : "140px",
+    width:
+      variant === "trip"
+        ? "95%"
+        : variant === "group"
+        ? "95%"
+        : "55%",
+    minHeight: "60px",
+    lineHeight: "1.55",
+    paddingRight: "8px",
+    marginLeft: "auto",
+    marginRight: "auto",
+  };
+
+  return (
+    <div className={styles[variant]} style={boxStyle}>
+      {response === "Analyzing..." ? (
+        <p className="italic text-gray-500 text-center">{response}</p>
+      ) : (
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          {response}
+        </ReactMarkdown>
+      )}
+    </div>
+  );
 }

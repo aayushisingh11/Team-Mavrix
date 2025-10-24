@@ -1739,20 +1739,21 @@ export function SocialMatching() {
                     {/* AI generated overall group compatibility explanation */}
                     <div className="mt-3">
                       <Gemini
-                        prompt={`Analyze this travel group of ${currentGroup.length} members:
-                          ${currentGroup
+                        variant="group"
+                        prompt={`Summarize the group's overall compatibility in 3–5 sentences.
+                                  Group members:
+                                  ${currentGroup
                             .map(
-                              (m) =>
-                                `${m.name} (${m.compatibility}%), interests: ${m.interests.join(", ")}`
+                              (m) => `${m.name} (${m.compatibility}%) – ${m.interests.join(", ")}`
                             )
                             .join("\n")}
-                            The overall compatibility score is ${groupCompatibility}%.
-                            Explain briefly:
-                            1. Why the group’s compatibility is at this level.
-                            2. What are their shared strengths.
-                            3. What could improve the collaboration or trip enjoyment.`}
+                                  Overall score: ${groupCompatibility}%.
+                                  Explain briefly why the score makes sense, what strengths the group shares, and one suggestion to improve teamwork or trip harmony.
+                                  Write in natural language — no lists or section titles.`}
                       />
+
                     </div>
+
 
                   </div>
 
@@ -1806,13 +1807,17 @@ export function SocialMatching() {
                           {/* AI summary for each member */}
                           <div className="mt-2">
                             <Gemini
-                              prompt={`Analyze compatibility for ${member.name}, age ${member.age}, from ${member.location}.
-                              Their interests: ${member.interests.join(", ")}.
-                              Explain:
-                              1. Why their compatibility is ${member.compatibility}%.
-                              2. What ${userProfile.name} will likely appreciate about them.
-                              3. Provide a one-line overall summary of group fit.`}
+                              variant="member"
+                              prompt={`Give a short, 3–4 sentence compatibility summary for ${member.name} (age ${member.age}, from ${member.location}).
+                                          Interests: ${member.interests.join(", ")}.
+                                          Compatibility score: ${member.compatibility}%.
+                                          Describe briefly:
+                                          • The key reason for this score.
+                                          • One or two personality traits the user will appreciate.
+                                          • A one-line closing remark about how they fit in the group.
+                                          Respond in a friendly, natural tone — no lists or headings, only short sentences.`}
                             />
+
                           </div>
 
                           <div className="flex items-center space-x-2">
@@ -1931,17 +1936,27 @@ export function SocialMatching() {
               <div className="bg-gray-50 border border-blue-100 rounded-lg p-4 mt-6">
                 <h4 className="font-medium text-blue-700 mb-2">AI Summary & Trip Suggestions</h4>
                 <Gemini
-                  prompt={`Based on the current group composition and their interests:
-${currentGroup
-                      .map(
-                        (m) =>
-                          `${m.name}: ${m.interests.join(", ")}`
-                      )
+                  variant="trip"
+                  prompt={`
+                          Based on the current group composition and their interests:
+                          ${currentGroup
+                      .map((m) => `- ${m.name}: ${m.interests.join(", ")}`)
                       .join("\n")}
-Suggest:
-1. A short summary of group synergy and travel style.
-2. 2-3 trip destination ideas that fit the group's interests.
-3. One activity that would help everyone bond.`}
+
+                            Please provide a response in the following clear format:
+
+                            ✨ **Group Synergy & Travel Style:**  
+                            - [Short, punchy summary of the group's dynamic and style]
+
+                            🌍 **Suggested Trip Destinations (2-3):**  
+                            1. [Destination 1] - [Why it fits the group]  
+                            2. [Destination 2] - [Why it fits the group]  
+                            3. [Destination 3] - [Optional]
+
+                            🤝 **Recommended Group Activity:**  
+                            - [One activity that will help everyone bond]
+                            `}
+
                 />
               </div>
 
