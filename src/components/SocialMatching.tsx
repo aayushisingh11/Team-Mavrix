@@ -1769,76 +1769,76 @@ export function SocialMatching() {
                     </div>
                     <div className="space-y-3">
                       {currentGroup.map((member) => (
-                        <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div className="flex items-center space-x-4">
-                            <Avatar>
-                              <AvatarFallback>{member.avatar}</AvatarFallback>
-                            </Avatar>
-                            <div className="space-y-2">
-                              <div>
-                                <h5 className="font-medium">{member.name}</h5>
-                                <div className="flex items-center space-x-3 text-sm text-muted-foreground">
-                                  <span>Age {member.age}</span>
-                                  <span>•</span>
-                                  <span className="flex items-center space-x-1">
-                                    <MapPin className="w-3 h-3" />
-                                    <span>{member.location}</span>
-                                  </span>
+                        <div key={member.id} className="p-4 border rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              <Avatar>
+                                <AvatarFallback>{member.avatar}</AvatarFallback>
+                              </Avatar>
+                              <div className="space-y-2">
+                                <div>
+                                  <h5 className="font-medium">{member.name}</h5>
+                                  <div className="flex items-center space-x-3 text-sm text-muted-foreground">
+                                    <span>Age {member.age}</span>
+                                    <span>•</span>
+                                    <span className="flex items-center space-x-1">
+                                      <MapPin className="w-3 h-3" />
+                                      <span>{member.location}</span>
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                  {member.interests.slice(0, 3).map((interest, idx) => {
+                                    const Icon = getInterestIcon(interest);
+                                    return (
+                                      <Badge key={idx} variant="secondary" className="text-xs flex items-center space-x-1">
+                                        <Icon className="w-3 h-3" />
+                                        <span>{interest}</span>
+                                      </Badge>
+                                    );
+                                  })}
+                                  {member.interests.length > 3 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      +{member.interests.length - 3} more
+                                    </Badge>
+                                  )}
                                 </div>
                               </div>
-                              <div className="flex flex-wrap gap-1">
-                                {member.interests.slice(0, 3).map((interest, idx) => {
-                                  const Icon = getInterestIcon(interest);
-                                  return (
-                                    <Badge key={idx} variant="secondary" className="text-xs flex items-center space-x-1">
-                                      <Icon className="w-3 h-3" />
-                                      <span>{interest}</span>
-                                    </Badge>
-                                  );
-                                })}
-                                {member.interests.length > 3 && (
-                                  <Badge variant="secondary" className="text-xs">
-                                    +{member.interests.length - 3} more
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <div className="text-right space-y-1">
+                                <Badge className={`px-3 py-1 ${getCompatibilityColor(member.compatibility)}`}>
+                                  {member.compatibility}% compatible
+                                </Badge>
+                                <div className="flex items-center space-x-1">
+                                  <Badge variant="default" className="bg-green-100 text-green-800">
+                                    {member.status}
                                   </Badge>
-                                )}
+                                </div>
                               </div>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleRemoveMember(member.id)}
+                                className="text-destructive hover:text-destructive"
+                              >
+                                <UserX className="w-4 h-4" />
+                              </Button>
                             </div>
                           </div>
-                          {/* AI summary for each member */}
-                          <div className="mt-2">
+                          {/* Gemini summary below */}
+                          <div className="pt-2 w-full">
                             <Gemini
                               variant="member"
                               prompt={`Give a short, 3–4 sentence compatibility summary for ${member.name} (age ${member.age}, from ${member.location}).
-                                          Interests: ${member.interests.join(", ")}.
-                                          Compatibility score: ${member.compatibility}%.
-                                          Describe briefly:
-                                          • The key reason for this score.
-                                          • One or two personality traits the user will appreciate.
-                                          • A one-line closing remark about how they fit in the group.
-                                          Respond in a friendly, natural tone — no lists or headings, only short sentences.`}
+                                Interests: ${member.interests.join(", ")}.
+                                Compatibility score: ${member.compatibility}%.
+                                Describe briefly:
+                                • The key reason for this score.
+                                • One or two personality traits the user will appreciate.
+                                • A one-line closing remark about how they fit in the group.
+                                Respond in a friendly, natural tone — no lists or headings, only short sentences.`}
                             />
-
-                          </div>
-
-                          <div className="flex items-center space-x-2">
-                            <div className="text-right space-y-1">
-                              <Badge className={`px-3 py-1 ${getCompatibilityColor(member.compatibility)}`}>
-                                {member.compatibility}% compatible
-                              </Badge>
-                              <div className="flex items-center space-x-1">
-                                <Badge variant="default" className="bg-green-100 text-green-800">
-                                  {member.status}
-                                </Badge>
-                              </div>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleRemoveMember(member.id)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <UserX className="w-4 h-4" />
-                            </Button>
                           </div>
                         </div>
                       ))}
