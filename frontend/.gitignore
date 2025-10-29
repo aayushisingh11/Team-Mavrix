@@ -1,7 +1,0 @@
-node_modules
-.DS_Store
-build/
-node_modules/
-dist/
-Backend/.env
-Backend/__pycache__
