@@ -15,10 +15,10 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # --- Configure GenAI ---
-api_key = os.getenv("GEMINI_API_KEY")
+api_key = os.getenv("GOOGLE_API_KEY")
 if not api_key:
-    logger.error("GEMINI_API_KEY not found in environment variables.")
-    raise ValueError("GEMINI_API_KEY not found in environment variables.")
+    logger.error("GOOGLE_API_KEY not found in environment variables.")
+    raise ValueError("GOOGLE_API_KEY not found in environment variables.")
 genai.configure(api_key=api_key)
 logger.info("GenAI configured successfully.")
 
