@@ -2,12 +2,19 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
-from google import genai
+import google.generativeai as genai
+from itinerary import router as itinerary_router  # <-- 1. Import the router
 
 load_dotenv()
 
-# Initialize the Gemini client with API key
-client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+# --- Configure GenAI ---
+api_key = os.getenv("GOOGLE_API_KEY")
+if not api_key:
+    raise ValueError("GOOGLE_API_KEY not found in environment variables.")
+genai.configure(api_key=api_key)
+
+# Initialize the model
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 app = FastAPI()
 
@@ -19,6 +26,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# --- 2. Include the router from itinerary.py ---
+app.include_router(itinerary_router)
+# ---------------------------------------------
 
 @app.get("/")
 async def root():
@@ -32,12 +43,7 @@ async def generate_text(request: Request):
         if not prompt:
             return {"response": "No prompt provided"}
 
-        # Use new Client() style
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt
-        )
-
+        response = model.generate_content(prompt)
         return {"response": response.text}
 
     except Exception as e:
