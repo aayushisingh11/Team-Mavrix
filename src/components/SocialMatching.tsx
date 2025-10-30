@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -13,123 +13,118 @@ import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
 import { Checkbox } from './ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { toast } from 'sonner@2.0.3';
-import { 
-  Users, 
-  MessageCircle, 
-  Heart, 
-  MapPin, 
-  Calendar,
-  Star,
-  UserPlus,
-  Share2,
-  Target,
-  Zap,
-  Clock,
-  Coffee,
-  Camera,
-  Mountain,
-  Music,
-  Settings,
-  Edit3,
-  Send,
-  Phone,
-  Video,
-  MoreHorizontal,
-  Search,
-  Filter,
-  X,
-  UserCircle,
-  Globe,
-  Briefcase,
-  Mail,
-  MapPinIcon,
-  Plus,
-  Minus,
-  Check,
-  UserX,
-  AlertCircle,
-  ExternalLink,
-  Navigation,
-  Shield,
-  Eye,
-  EyeOff,
-  Wallet,
-  CreditCard,
-  Car,
-  Home,
-  Smartphone,
-  Instagram,
-  Facebook,
-  Twitter,
-  Award,
-  Book,
-  Plane,
-  TrendingUp,
-  Lock,
-  Upload,
-  Save,
-  User
-} from 'lucide-react';
+import { toast } from 'sonner';
+import { Users, MessageCircle, Heart, MapPin, Calendar, Star, UserPlus, Share2, Target, Zap, Clock, Coffee, Camera, Mountain, Music, Settings, Edit3, Send, Phone, Video, MoreHorizontal, Search, Filter, X, UserCircle, Globe, Briefcase, Mail, MapPinIcon, Plus, Minus, Check, UserX, AlertCircle, ExternalLink, Navigation, Shield, Eye, EyeOff, Wallet, CreditCard, Car, Home, Smartphone, Instagram, Facebook, Twitter, Award, Book, Plane, TrendingUp, Lock, Upload, Save, User, Rss } from 'lucide-react';
+import Gemini from "./Gemini";
+
+// --- MOCK GEMINI INTEGRATION START ---
+async function getGeminiCompatibility(userA, userB) {
+  await new Promise(resolve => setTimeout(resolve, 50));
+
+  const sharedInterests = userA.interests.filter((interest) => 
+    userB.interests.includes(interest)
+  );
+
+  let score = 50 + (sharedInterests.length * 10);
+  score = Math.min(99, Math.max(60, score));
+
+  let rationale: any[] = [];
+
+  if (sharedInterests.length > 0) {
+    rationale.push(`Strong overlap in interests, especially: ${sharedInterests.join(', ')}.`);
+  } else {
+    rationale.push("No direct shared interests found, but travel styles are complementary.");
+  }
+
+  if (userA.travelStyle === userB.travelStyle) {
+    score = Math.min(99, score + 5);
+    rationale.push(`Both prefer the '${userA.travelStyle}' travel style, ensuring a similar pace.`);
+  }
+
+  if (score >= 90) {
+    rationale.push("High match potential for an effortless and engaging trip!");
+  } else if (score >= 80) {
+    rationale.push("Solid foundation for collaboration, with a few key differences in focus.");
+  } else {
+    rationale.push("Moderate match, requiring clear communication on activity priorities.");
+  }
+
+  const summary = `Compatibility score of ${score}% based on ${sharedInterests.length} shared interests.`;
+
+  return {
+    score: score,
+    summary: summary,
+    rationale: rationale,
+  };
+}
+// --- MOCK GEMINI INTEGRATION END ---
 
 export function SocialMatching() {
   const [activeTab, setActiveTab] = useState('group');
-  const [selectedChat, setSelectedChat] = useState(null);
+  const [selectedChat, setSelectedChat] = useState<any>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [message, setMessage] = useState('');
-  
+  const [companionScores, setCompanionScores] = useState({});
+
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
-  const [interestFilters, setInterestFilters] = useState([]);
+  const [interestFilters, setInterestFilters] = useState<any[]>([]);
   const [compatibilityFilter, setCompatibilityFilter] = useState('any');
   const [verifiedFilter, setVerifiedFilter] = useState(false);
-  
+
+
   // Group management states
-  const [invitedMembers, setInvitedMembers] = useState([]);
+  const [invitedMembers, setInvitedMembers] = useState<any[]>([]);
   const [showInvited, setShowInvited] = useState(false);
   const [isGroupChatOpen, setIsGroupChatOpen] = useState(false);
-  
+
+
   // Profile editing states
-  const [editingProfile, setEditingProfile] = useState(null);
-  const [tempProfileData, setTempProfileData] = useState(null);
+  const [editingProfile, setEditingProfile] = useState(null as any);
+  const [tempProfileData, setTempProfileData] = useState(null as any);
   const [profileEditTab, setProfileEditTab] = useState('basic');
-  
+
+
   // Guide states
-  const [selectedGuide, setSelectedGuide] = useState(null);
+  const [selectedGuide, setSelectedGuide] = useState(null as any);
   const [isGuideProfileOpen, setIsGuideProfileOpen] = useState(false);
-  
+
+
   // Companion profile states
-  const [selectedCompanion, setSelectedCompanion] = useState(null);
+  const [selectedCompanion, setSelectedCompanion] = useState(null as any);
   const [isCompanionProfileOpen, setIsCompanionProfileOpen] = useState(false);
   
+  const [inviteConfirmationOpen, setInviteConfirmationOpen] = useState(false);
+  const [companionToInvite, setCompanionToInvite] = useState<any>(null);
+
   const [currentGroup, setCurrentGroup] = useState([
-    { 
-      id: 1, 
-      name: 'John Doe', 
-      avatar: 'JD', 
+    {
+      id: 1,
+      name: 'John Doe',
+      avatar: 'JD',
       age: 29,
       location: 'New York, USA',
       interests: ['nightlife', 'food', 'photography'],
       compatibility: 95,
       status: 'confirmed'
     },
-    { 
-      id: 2, 
-      name: 'Sarah Wilson', 
-      avatar: 'SW', 
+    {
+      id: 2,
+      name: 'Sarah Wilson',
+      avatar: 'SW',
       age: 26,
       location: 'Toronto, Canada',
       interests: ['temples', 'culture', 'shopping'],
       compatibility: 78,
       status: 'confirmed'
     },
-    { 
-      id: 3, 
-      name: 'Mike Chen', 
-      avatar: 'MC', 
+    {
+      id: 3,
+      name: 'Mike Chen',
+      avatar: 'MC',
       age: 31,
       location: 'Vancouver, Canada',
       interests: ['shopping', 'food', 'adventure'],
@@ -155,7 +150,7 @@ export function SocialMatching() {
     {
       id: 5,
       name: 'Alex Johnson',
-      avatar: 'AJ', 
+      avatar: 'AJ',
       location: 'London, UK',
       age: 32,
       interests: ['adventure', 'nightlife', 'music'],
@@ -170,7 +165,7 @@ export function SocialMatching() {
       name: 'Lisa Chang',
       avatar: 'LC',
       location: 'Singapore',
-      age: 26, 
+      age: 26,
       interests: ['shopping', 'spa', 'beaches'],
       matchScore: 79,
       tripDates: 'Dec 14-21, 2024',
@@ -247,6 +242,7 @@ export function SocialMatching() {
   ];
 
   const [userProfile, setUserProfile] = useState({
+    id: 100,
     name: 'John Doe',
     age: 29,
     location: 'New York, USA',
@@ -292,84 +288,108 @@ export function SocialMatching() {
 
   const localGuides = [
     {
-      id: 7,
-      name: 'Ravi Desai',
-      avatar: 'RD',
-      location: 'Panaji, Goa',
-      address: 'MG Road, Panaji, Goa 403001',
-      coordinates: { lat: 15.4909, lng: 73.8278 },
-      phone: '+91 98765 43210',
-      email: 'ravi.desai@email.com',
-      rating: 4.9,
-      reviews: 156,
-      specialties: ['Local culture', 'Hidden gems', 'Food tours'],
-      languages: ['English', 'Hindi', 'Konkani'],
-      pricePerDay: 2500,
-      verified: true,
-      bio: 'Born and raised in Goa, I have been sharing the beauty of my homeland with travelers for over 8 years. I specialize in off-the-beaten-path experiences and authentic local cuisine.',
-      experience: '8+ years'
-    },
-    {
-      id: 8,
-      name: 'Maria Fernandes', 
-      avatar: 'MF',
-      location: 'Old Goa',
-      address: 'Basilica of Bom Jesus Road, Old Goa 403402',
-      coordinates: { lat: 15.5007, lng: 73.9114 },
-      phone: '+91 87654 32109',
-      email: 'maria.fernandes@email.com',
-      rating: 4.8,
-      reviews: 89,
-      specialties: ['Heritage sites', 'Photography', 'Portuguese history'],
-      languages: ['English', 'Portuguese', 'Hindi'],
-      pricePerDay: 3000,
-      verified: true,
-      bio: 'Heritage enthusiast with a deep knowledge of Portuguese colonial history. I love helping photographers capture the perfect shots of Old Goa\'s magnificent architecture.',
-      experience: '6+ years'
+        id: 7,
+        name: 'Ravi Desai',
+        avatar: 'RD',
+        location: 'Panaji, Goa',
+        address: 'MG Road, Panaji, Goa 403001',
+        coordinates: { lat: 15.4909, lng: 73.8278 },
+        phone: '+91 98765 43210',
+        email: 'ravi.desai@email.com',
+        rating: 4.9,
+        reviews: 156,
+        specialties: ['Local culture', 'Hidden gems', 'Food tours'],
+        languages: ['English', 'Hindi', 'Konkani'],
+        pricePerDay: 2500,
+        verified: true,
+        bio: 'Born and raised in Goa, I have been sharing the beauty of my homeland with travelers for over 8 years. I specialize in off-the-beaten-path experiences and authentic local cuisine.',
+        experience: '8+ years'
+      },
+      {
+        id: 8,
+        name: 'Maria Fernandes', 
+        avatar: 'MF',
+        location: 'Old Goa',
+        address: 'Basilica of Bom Jesus Road, Old Goa 403402',
+        coordinates: { lat: 15.5007, lng: 73.9114 },
+        phone: '+91 87654 32109',
+        email: 'maria.fernandes@email.com',
+        rating: 4.8,
+        reviews: 89,
+        specialties: ['Heritage sites', 'Photography', 'Portuguese history'],
+        languages: ['English', 'Portuguese', 'Hindi'],
+        pricePerDay: 3000,
+        verified: true,
+        bio: 'Heritage enthusiast with a deep knowledge of Portuguese colonial history. I love helping photographers capture the perfect shots of Old Goa\'s magnificent architecture.',
+        experience: '6+ years'
+      }
+    ];
+
+  // --- GEMINI INTEGRATION LOGIC ---
+  const calculateAllCompanionScores = async () => {
+    const newScores = {};
+    for (const companion of allCompanions) {
+      const geminiData = await getGeminiCompatibility(userProfile, companion);
+      newScores[companion.id] = {
+        matchScore: geminiData.score,
+        compatibilityRationale: geminiData.rationale
+      };
     }
-  ];
+    setCompanionScores(newScores);
+  };
+
+  useEffect(() => {
+    calculateAllCompanionScores();
+  }, [userProfile.interests, userProfile.travelStyle]);
 
   // Calculate group compatibility dynamically
   const groupCompatibility = useMemo(() => {
     if (currentGroup.length === 0) return 0;
     
-    // Get all interests from group members
     const allInterests = currentGroup.flatMap(member => member.interests);
     const uniqueInterests = [...new Set(allInterests)];
-    
+
     // Calculate shared interests
     let sharedInterestScore = 0;
     uniqueInterests.forEach(interest => {
-      const membersWithInterest = currentGroup.filter(member => 
+      const membersWithInterest = currentGroup.filter(member =>
         member.interests.includes(interest)
       ).length;
       if (membersWithInterest > 1) {
         sharedInterestScore += (membersWithInterest / currentGroup.length) * 20;
       }
     });
-    
+
     // Calculate individual compatibility average
-    const avgCompatibility = currentGroup.reduce((sum, member) => 
+    const avgCompatibility = currentGroup.reduce((sum, member) =>
       sum + member.compatibility, 0) / currentGroup.length;
-    
+
     // Combine scores (60% individual avg + 40% shared interests)
     const totalScore = Math.round((avgCompatibility * 0.6) + (sharedInterestScore * 0.4));
-    
+
     return Math.min(100, Math.max(0, totalScore));
   }, [currentGroup]);
 
   // Filter companions based on search and filters
   const filteredCompanions = useMemo(() => {
-    return allCompanions.filter(companion => {
-      // Search filter
+    return allCompanions.map(companion => {
+      const aiData = companionScores[companion.id];
+      const finalCompanion = {
+        ...companion,
+        matchScore: aiData?.matchScore ?? companion.matchScore,
+        compatibilityRationale: aiData?.compatibilityRationale,
+      };
+      return finalCompanion;
+    })
+    .filter(companion => {
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
-        const matchesSearch = 
+        const matchesSearch =
           companion.name.toLowerCase().includes(query) ||
           companion.location.toLowerCase().includes(query) ||
           companion.bio.toLowerCase().includes(query) ||
           companion.interests.some(interest => interest.toLowerCase().includes(query));
-        
+
         if (!matchesSearch) return false;
       }
 
@@ -380,7 +400,7 @@ export function SocialMatching() {
 
       // Interest filters
       if (interestFilters.length > 0) {
-        const hasMatchingInterest = interestFilters.some(interest => 
+        const hasMatchingInterest = interestFilters.some(interest =>
           companion.interests.includes(interest)
         );
         if (!hasMatchingInterest) return false;
@@ -399,7 +419,7 @@ export function SocialMatching() {
 
       return true;
     });
-  }, [allCompanions, searchQuery, locationFilter, interestFilters, compatibilityFilter, verifiedFilter]);
+  }, [allCompanions, companionScores, searchQuery, locationFilter, interestFilters, compatibilityFilter, verifiedFilter]);
 
   const getInterestIcon = (interest) => {
     switch (interest) {
@@ -434,13 +454,14 @@ export function SocialMatching() {
   const handleInviteToGroup = (companion) => {
     // Check if already invited or in group
     const isAlreadyInGroup = currentGroup.some(member => member.id === companion.id);
-    const isAlreadyInvited = invitedMembers.some(member => member.id === companion.id);
-    
+    const isAlreadyInvited = invitedMembers.some((member:any) => member.id === companion.id);
+
     if (isAlreadyInGroup) {
       toast.error('User is already in your group');
       return;
     }
-    
+
+
     if (isAlreadyInvited) {
       toast.error('User is already invited');
       return;
@@ -450,9 +471,10 @@ export function SocialMatching() {
     const invitedMember = {
       ...companion,
       status: 'invited',
+      compatibility: companion.matchScore,
       invitedAt: new Date().toISOString()
     };
-    
+
     setInvitedMembers(prev => [...prev, invitedMember]);
     toast.success(`Invitation sent to ${companion.name}!`);
   };
@@ -464,12 +486,12 @@ export function SocialMatching() {
   };
 
   const handleCancelInvite = (memberId) => {
-    setInvitedMembers(prev => prev.filter(member => member.id !== memberId));
+    setInvitedMembers(prev => prev.filter((member: any) => member.id !== memberId));
     toast.success('Invitation cancelled');
   };
 
   const handleAcceptInvite = (memberId) => {
-    const invitedMember = invitedMembers.find(member => member.id === memberId);
+    const invitedMember = invitedMembers.find((member: any) => member.id === memberId);
     if (invitedMember) {
       const newMember = {
         ...invitedMember,
@@ -477,7 +499,7 @@ export function SocialMatching() {
         status: 'confirmed'
       };
       setCurrentGroup(prev => [...prev, newMember]);
-      setInvitedMembers(prev => prev.filter(member => member.id !== memberId));
+      setInvitedMembers(prev => prev.filter((member: any) => member.id !== memberId));
       toast.success(`${invitedMember.name} joined the group!`);
     }
   };
@@ -514,7 +536,7 @@ export function SocialMatching() {
 
   const toggleInterest = (interest) => {
     if (!tempProfileData) return;
-    
+
     setTempProfileData(prev => ({
       ...prev,
       interests: prev.interests.includes(interest)
@@ -552,6 +574,44 @@ export function SocialMatching() {
     toast.success('Opening group chat');
   };
 
+  const confirmInvite = () => {
+    if (!companionToInvite) return;
+    setInviteConfirmationOpen(false);
+    toast.success("Invite Sent, waiting for confirmation");
+    const isAlreadyInGroup = currentGroup.some(member => member.id === companionToInvite.id);
+    const isAlreadyInvited = invitedMembers.some((member:any) => member.id === companionToInvite.id);
+  
+    if (isAlreadyInGroup) {
+      toast.error('User is already in your group');
+      setInviteConfirmationOpen(false);
+      setCompanionToInvite(null);
+      return;
+    }
+  
+    if (isAlreadyInvited) {
+      toast.error('User is already invited');
+      setInviteConfirmationOpen(false);
+      setCompanionToInvite(null);
+      return;
+    }
+  
+    const invitedMember = {
+      ...companionToInvite,
+      status: 'invited',
+      compatibility: companionToInvite.matchScore,
+      invitedAt: new Date().toISOString()
+    };
+    
+    setInvitedMembers(prev => [...prev, invitedMember]);
+    setInviteConfirmationOpen(false);
+    setCompanionToInvite(null);
+  };
+  
+  const cancelInvite = () => {
+    setInviteConfirmationOpen(false);
+    setCompanionToInvite(null);
+  };
+
   const ChatInterface = ({ companion, onClose }) => (
     <div className="flex flex-col h-full">
       {/* Chat Header */}
@@ -586,11 +646,10 @@ export function SocialMatching() {
         <div className="space-y-4">
           {chatMessages.map((msg) => (
             <div key={msg.id} className={`flex ${msg.isSelf ? 'justify-end' : 'justify-start'}`}>
-              <div className={`max-w-[70%] p-3 rounded-lg ${
-                msg.isSelf 
-                  ? 'bg-primary text-primary-foreground' 
-                  : 'bg-muted text-muted-foreground'
-              }`}>
+              <div className={`max-w-[70%] p-3 rounded-lg ${msg.isSelf
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-muted text-muted-foreground'
+                }`}>
                 <p className="text-sm">{msg.message}</p>
                 <p className="text-xs mt-1 opacity-70">{msg.time}</p>
               </div>
@@ -663,11 +722,10 @@ export function SocialMatching() {
                     <AvatarFallback className="text-xs">{msg.avatar}</AvatarFallback>
                   </Avatar>
                 )}
-                <div className={`p-3 rounded-lg ${
-                  msg.isSelf 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-muted'
-                }`}>
+                <div className={`p-3 rounded-lg ${msg.isSelf
+                  ? 'bg-primary text-primary-foreground'
+                  : 'bg-muted'
+                  }`}>
                   {!msg.isSelf && (
                     <p className="text-xs font-medium mb-1 text-muted-foreground">{msg.sender}</p>
                   )}
@@ -732,11 +790,11 @@ export function SocialMatching() {
             <User className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-medium">Basic Information</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Full Name *</label>
-              <Input 
+              <Input
                 value={tempProfileData.name}
                 onChange={(e) => setTempProfileData(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Enter your full name"
@@ -744,10 +802,10 @@ export function SocialMatching() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Age *</label>
-              <Input 
+              <Input
                 value={tempProfileData.age}
                 onChange={(e) => setTempProfileData(prev => ({ ...prev, age: parseInt(e.target.value) || 0 }))}
-                type="number" 
+                type="number"
                 placeholder="Your age"
                 min="18"
                 max="100"
@@ -755,7 +813,7 @@ export function SocialMatching() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Location *</label>
-              <Input 
+              <Input
                 value={tempProfileData.location}
                 onChange={(e) => setTempProfileData(prev => ({ ...prev, location: e.target.value }))}
                 placeholder="City, Country"
@@ -763,7 +821,8 @@ export function SocialMatching() {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Occupation</label>
-              <Input 
+              <Input
+              
                 value={tempProfileData.occupation}
                 onChange={(e) => setTempProfileData(prev => ({ ...prev, occupation: e.target.value }))}
                 placeholder="Your profession"
@@ -773,10 +832,11 @@ export function SocialMatching() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Bio *</label>
-            <Textarea 
+            <Textarea
+            
               value={tempProfileData.bio}
               onChange={(e) => setTempProfileData(prev => ({ ...prev, bio: e.target.value }))}
-              rows={3} 
+              rows={3}
               placeholder="Tell other travelers about yourself, your travel experiences, and what you're looking for in travel companions..."
               maxLength={500}
             />
@@ -787,13 +847,13 @@ export function SocialMatching() {
 
           <div className="space-y-2">
             <label className="text-sm font-medium">Languages</label>
-            <Input 
+            <Input
               value={tempProfileData.languages?.join(', ') || ''}
               onChange={(e) => {
                 const languages = e.target.value.split(',').map(lang => lang.trim()).filter(Boolean);
                 setTempProfileData(prev => ({ ...prev, languages }));
               }}
-              placeholder="English, Spanish, French..." 
+              placeholder="English, Spanish, French..."
             />
             <p className="text-xs text-muted-foreground">Separate multiple languages with commas</p>
           </div>
@@ -837,12 +897,12 @@ export function SocialMatching() {
             <Plane className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-medium">Travel Preferences</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Travel Style</label>
-              <Select 
-                value={tempProfileData.travelStyle || ''} 
+              <Select
+                value={tempProfileData.travelStyle || ''}
                 onValueChange={(value) => setTempProfileData(prev => ({ ...prev, travelStyle: value }))}
               >
                 <SelectTrigger>
@@ -858,11 +918,10 @@ export function SocialMatching() {
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
               <label className="text-sm font-medium">Budget Preference</label>
-              <Select 
-                value={tempProfileData.budgetPreference || ''} 
+              <Select
+                value={tempProfileData.budgetPreference || ''}
                 onValueChange={(value) => setTempProfileData(prev => ({ ...prev, budgetPreference: value }))}
               >
                 <SelectTrigger>
@@ -879,8 +938,8 @@ export function SocialMatching() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Preferred Group Size</label>
-              <Select 
-                value={tempProfileData.groupSize || ''} 
+              <Select
+                value={tempProfileData.groupSize || ''}
                 onValueChange={(value) => setTempProfileData(prev => ({ ...prev, groupSize: value }))}
               >
                 <SelectTrigger>
@@ -898,8 +957,8 @@ export function SocialMatching() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Travel Experience</label>
-              <Select 
-                value={tempProfileData.travelExperience || ''} 
+              <Select
+                value={tempProfileData.travelExperience || ''}
                 onValueChange={(value) => setTempProfileData(prev => ({ ...prev, travelExperience: value }))}
               >
                 <SelectTrigger>
@@ -922,30 +981,30 @@ export function SocialMatching() {
             <Star className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-medium">Travel Experience</h3>
           </div>
-          
+
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Favorite Destinations</label>
-              <Input 
+              <Input
                 value={tempProfileData.favoriteDestinations?.join(', ') || ''}
                 onChange={(e) => {
                   const destinations = e.target.value.split(',').map(dest => dest.trim()).filter(Boolean);
                   setTempProfileData(prev => ({ ...prev, favoriteDestinations: destinations }));
                 }}
-                placeholder="Japan, Iceland, New Zealand..." 
+                placeholder="Japan, Iceland, New Zealand..."
               />
               <p className="text-xs text-muted-foreground">Places you've visited and loved</p>
             </div>
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Travel Bucket List</label>
-              <Input 
+              <Input
                 value={tempProfileData.bucketList?.join(', ') || ''}
                 onChange={(e) => {
                   const bucketList = e.target.value.split(',').map(item => item.trim()).filter(Boolean);
                   setTempProfileData(prev => ({ ...prev, bucketList: bucketList }));
                 }}
-                placeholder="Northern Lights, Safari in Africa, Machu Picchu..." 
+                placeholder="Northern Lights, Safari in Africa, Machu Picchu..."
               />
               <p className="text-xs text-muted-foreground">Places and experiences you want to have</p>
             </div>
@@ -961,11 +1020,11 @@ export function SocialMatching() {
             <Phone className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-medium">Contact Information</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Email Address</label>
-              <Input 
+              <Input
                 value={tempProfileData.email || ''}
                 onChange={(e) => setTempProfileData(prev => ({ ...prev, email: e.target.value }))}
                 type="email"
@@ -975,7 +1034,7 @@ export function SocialMatching() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Phone Number</label>
-              <Input 
+              <Input
                 value={tempProfileData.phone || ''}
                 onChange={(e) => setTempProfileData(prev => ({ ...prev, phone: e.target.value }))}
                 type="tel"
@@ -985,7 +1044,7 @@ export function SocialMatching() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Website</label>
-              <Input 
+              <Input
                 value={tempProfileData.website || ''}
                 onChange={(e) => setTempProfileData(prev => ({ ...prev, website: e.target.value }))}
                 type="url"
@@ -1001,17 +1060,17 @@ export function SocialMatching() {
             <Share2 className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-medium">Social Media</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium flex items-center space-x-2">
                 <Instagram className="w-4 h-4" />
                 <span>Instagram</span>
               </label>
-              <Input 
+              <Input
                 value={tempProfileData.socialMedia?.instagram || ''}
-                onChange={(e) => setTempProfileData(prev => ({ 
-                  ...prev, 
+                onChange={(e) => setTempProfileData(prev => ({
+                  ...prev,
                   socialMedia: { ...prev.socialMedia, instagram: e.target.value }
                 }))}
                 placeholder="@yourusername"
@@ -1023,10 +1082,10 @@ export function SocialMatching() {
                 <Facebook className="w-4 h-4" />
                 <span>Facebook</span>
               </label>
-              <Input 
+              <Input
                 value={tempProfileData.socialMedia?.facebook || ''}
-                onChange={(e) => setTempProfileData(prev => ({ 
-                  ...prev, 
+                onChange={(e) => setTempProfileData(prev => ({
+                  ...prev,
                   socialMedia: { ...prev.socialMedia, facebook: e.target.value }
                 }))}
                 placeholder="your.facebook.profile"
@@ -1038,10 +1097,10 @@ export function SocialMatching() {
                 <Twitter className="w-4 h-4" />
                 <span>Twitter</span>
               </label>
-              <Input 
+              <Input
                 value={tempProfileData.socialMedia?.twitter || ''}
-                onChange={(e) => setTempProfileData(prev => ({ 
-                  ...prev, 
+                onChange={(e) => setTempProfileData(prev => ({
+                  ...prev,
                   socialMedia: { ...prev.socialMedia, twitter: e.target.value }
                 }))}
                 placeholder="@yourusername"
@@ -1056,14 +1115,14 @@ export function SocialMatching() {
             <AlertCircle className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-medium">Emergency Contact</h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Contact Name</label>
-              <Input 
+              <Input
                 value={tempProfileData.emergencyContact?.name || ''}
-                onChange={(e) => setTempProfileData(prev => ({ 
-                  ...prev, 
+                onChange={(e) => setTempProfileData(prev => ({
+                  ...prev,
                   emergencyContact: { ...prev.emergencyContact, name: e.target.value }
                 }))}
                 placeholder="Full name"
@@ -1072,10 +1131,10 @@ export function SocialMatching() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Relationship</label>
-              <Input 
+              <Input
                 value={tempProfileData.emergencyContact?.relationship || ''}
-                onChange={(e) => setTempProfileData(prev => ({ 
-                  ...prev, 
+                onChange={(e) => setTempProfileData(prev => ({
+                  ...prev,
                   emergencyContact: { ...prev.emergencyContact, relationship: e.target.value }
                 }))}
                 placeholder="Sister, Parent, Friend..."
@@ -1084,10 +1143,10 @@ export function SocialMatching() {
 
             <div className="space-y-2">
               <label className="text-sm font-medium">Phone Number</label>
-              <Input 
+              <Input
                 value={tempProfileData.emergencyContact?.phone || ''}
-                onChange={(e) => setTempProfileData(prev => ({ 
-                  ...prev, 
+                onChange={(e) => setTempProfileData(prev => ({
+                  ...prev,
                   emergencyContact: { ...prev.emergencyContact, phone: e.target.value }
                 }))}
                 type="tel"
@@ -1106,17 +1165,17 @@ export function SocialMatching() {
             <Shield className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-medium">Privacy & Visibility</h3>
           </div>
-          
+
           <div className="space-y-4">
             <div className="flex items-center justify-between p-4 border border-border/50 rounded-lg bg-muted/20">
               <div className="space-y-1">
                 <h4 className="font-medium">Profile Visibility</h4>
                 <p className="text-sm text-muted-foreground">Control who can see your profile</p>
               </div>
-              <Select 
-                value={tempProfileData.privacy?.profileVisibility || 'public'} 
-                onValueChange={(value) => setTempProfileData(prev => ({ 
-                  ...prev, 
+              <Select
+                value={tempProfileData.privacy?.profileVisibility || 'public'}
+                onValueChange={(value) => setTempProfileData(prev => ({
+                  ...prev,
                   privacy: { ...prev.privacy, profileVisibility: value }
                 }))}
               >
@@ -1133,7 +1192,7 @@ export function SocialMatching() {
 
             <div className="space-y-3">
               <h4 className="font-medium">Contact Information Visibility</h4>
-              
+
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 border border-border/50 rounded-lg">
                   <div className="flex items-center space-x-3">
@@ -1142,8 +1201,8 @@ export function SocialMatching() {
                   </div>
                   <Checkbox
                     checked={tempProfileData.privacy?.showEmail || false}
-                    onCheckedChange={(checked) => setTempProfileData(prev => ({ 
-                      ...prev, 
+                    onCheckedChange={(checked) => setTempProfileData(prev => ({
+                      ...prev,
                       privacy: { ...prev.privacy, showEmail: checked }
                     }))}
                   />
@@ -1156,8 +1215,8 @@ export function SocialMatching() {
                   </div>
                   <Checkbox
                     checked={tempProfileData.privacy?.showPhone || false}
-                    onCheckedChange={(checked) => setTempProfileData(prev => ({ 
-                      ...prev, 
+                    onCheckedChange={(checked) => setTempProfileData(prev => ({
+                      ...prev,
                       privacy: { ...prev.privacy, showPhone: checked }
                     }))}
                   />
@@ -1170,8 +1229,8 @@ export function SocialMatching() {
                   </div>
                   <Checkbox
                     checked={tempProfileData.privacy?.showSocialMedia || false}
-                    onCheckedChange={(checked) => setTempProfileData(prev => ({ 
-                      ...prev, 
+                    onCheckedChange={(checked) => setTempProfileData(prev => ({
+                      ...prev,
                       privacy: { ...prev.privacy, showSocialMedia: checked }
                     }))}
                   />
@@ -1184,8 +1243,8 @@ export function SocialMatching() {
                   </div>
                   <Checkbox
                     checked={tempProfileData.privacy?.allowMessages || false}
-                    onCheckedChange={(checked) => setTempProfileData(prev => ({ 
-                      ...prev, 
+                    onCheckedChange={(checked) => setTempProfileData(prev => ({
+                      ...prev,
                       privacy: { ...prev.privacy, allowMessages: checked }
                     }))}
                   />
@@ -1201,7 +1260,7 @@ export function SocialMatching() {
             <TrendingUp className="w-5 h-5 text-muted-foreground" />
             <h3 className="font-medium">Profile Statistics</h3>
           </div>
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="p-4 bg-muted/20 rounded-lg border border-border/50 text-center">
               <div className="font-semibold text-2xl text-primary">{userProfile.tripsCompleted}</div>
@@ -1293,9 +1352,9 @@ export function SocialMatching() {
           <h3 className="font-medium text-lg">Filters</h3>
           <p className="text-xs text-muted-foreground">Refine your search results</p>
         </div>
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={clearFilters}
           className="text-xs text-muted-foreground hover:text-destructive transition-colors"
         >
@@ -1352,8 +1411,8 @@ export function SocialMatching() {
                         className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                       />
                       <Icon className="w-4 h-4 text-muted-foreground" />
-                      <label 
-                        htmlFor={interest} 
+                      <label
+                        htmlFor={interest}
                         className="text-sm cursor-pointer capitalize flex-1 font-medium"
                       >
                         {interest}
@@ -1518,15 +1577,15 @@ export function SocialMatching() {
               </div>
 
               <div className="flex space-x-2">
-                <Button 
+                <Button
                   onClick={() => handleContactGuide(selectedGuide)}
                   className="flex-1"
                 >
                   <Mail className="w-4 h-4 mr-2" />
                   Contact Guide
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => handleViewOnMap(selectedGuide)}
                   className="flex-1"
                 >
@@ -1614,15 +1673,15 @@ export function SocialMatching() {
               </div>
 
               <div className="flex space-x-2">
-                <Button 
+                <Button
                   onClick={() => handleMessage(selectedCompanion)}
                   className="flex-1"
                 >
                   <MessageCircle className="w-4 h-4 mr-2" />
                   Send Message
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => handleInviteToGroup(selectedCompanion)}
                   className="flex-1"
                 >
@@ -1637,6 +1696,29 @@ export function SocialMatching() {
     );
   };
 
+    /* === ADD CONFIRMATION MODAL HERE === */
+    const InviteConfirmationDialog = () => (
+        <Dialog open={inviteConfirmationOpen} onOpenChange={setInviteConfirmationOpen}>
+          <DialogContent className="max-w-md mx-auto text-center p-6 rounded-2xl">
+            <DialogHeader>
+              <DialogTitle>Invite to Group</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to invite {companionToInvite?.name} to your travel group?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-center gap-4 mt-6">
+              {/* <Button variant="outline" onClick={cancelInvite}> */}
+              <Button variant="outline" onClick={() => setInviteConfirmationOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={confirmInvite}>
+                Yes, Invite!
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      );
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -1645,7 +1727,7 @@ export function SocialMatching() {
           <h2 className="text-2xl">Social Travel Hub</h2>
           <p className="text-muted-foreground">Connect with fellow travelers and local guides</p>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <Dialog open={isProfileOpen} onOpenChange={setIsProfileOpen}>
             <DialogTrigger asChild>
@@ -1684,16 +1766,16 @@ export function SocialMatching() {
                   <span>Group Management</span>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={handleGroupChat}
                   >
                     <MessageCircle className="w-4 h-4 mr-2" />
                     Group Chat
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => setShowInvited(!showInvited)}
                   >
@@ -1725,17 +1807,33 @@ export function SocialMatching() {
                       </div>
                     </div>
                     <p className="text-sm text-muted-foreground mt-3">
-                      {groupCompatibility >= 85 
-                        ? "Excellent compatibility! Great balance of shared and individual interests." 
-                        : groupCompatibility >= 70 
-                        ? "Good compatibility. Some shared interests with room for diverse activities." 
-                        : groupCompatibility >= 50 
-                        ? "Moderate compatibility. Consider adding members with similar interests." 
-                        : "Low compatibility. Try inviting members with more aligned interests."
+                      {groupCompatibility >= 85
+                        ? "Excellent compatibility! Great balance of shared and individual interests."
+                        : groupCompatibility >= 70
+                          ? "Good compatibility. Some shared interests with room for diverse activities."
+                          : groupCompatibility >= 50
+                            ? "Moderate compatibility. Consider adding members with similar interests."
+                            : "Low compatibility. Try inviting members with more aligned interests."
                       }
                     </p>
                     <div className="mt-2 text-xs text-blue-700">
                       Current score: {groupCompatibility} (Average: {Math.round(currentGroup.reduce((sum, member) => sum + member.compatibility, 0) / currentGroup.length)}%, Shared interests bonus)
+                    </div>
+                    {/* AI generated overall group compatibility explanation */}
+                    <div className="mt-3">
+                      <Gemini
+                        variant="group"
+                        prompt={`Summarize the group's overall compatibility in 3–5 sentences.
+                                  Group members:
+                                  ${currentGroup
+                            .map(
+                              (m) => `${m.name} (${m.compatibility}%) – ${m.interests.join(", ")}`
+                            )
+                            .join("\n")}
+                                  Overall score: ${groupCompatibility}%.
+                                  Explain briefly why the score makes sense, what strengths the group shares, and one suggestion to improve teamwork or trip harmony.
+                                  Write in natural language — no lists or section titles.`}
+                      />
                     </div>
                   </div>
 
@@ -1751,7 +1849,96 @@ export function SocialMatching() {
                     </div>
                     <div className="space-y-3">
                       {currentGroup.map((member) => (
-                        <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div key={member.id} className="p-4 border rounded-lg">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-4">
+                              <Avatar>
+                                <AvatarFallback>{member.avatar}</AvatarFallback>
+                              </Avatar>
+                              <div className="space-y-2">
+                                <div>
+                                  <h5 className="font-medium">{member.name}</h5>
+                                  <div className="flex items-center space-x-3 text-sm text-muted-foreground">
+                                    <span>Age {member.age}</span>
+                                    <span>•</span>
+                                    <span className="flex items-center space-x-1">
+                                      <MapPin className="w-3 h-3" />
+                                      <span>{member.location}</span>
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="flex flex-wrap gap-1">
+                                  {member.interests.slice(0, 3).map((interest, idx) => {
+                                    const Icon = getInterestIcon(interest);
+                                    return (
+                                      <Badge key={idx} variant="secondary" className="text-xs flex items-center space-x-1">
+                                        <Icon className="w-3 h-3" />
+                                        <span>{interest}</span>
+                                      </Badge>
+                                    );
+                                  })}
+                                  {member.interests.length > 3 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      +{member.interests.length - 3} more
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <div className="text-right space-y-1">
+                                <Badge className={`px-3 py-1 ${getCompatibilityColor(member.compatibility)}`}>
+                                  {member.compatibility}% compatible
+                                </Badge>
+                                <div className="flex items-center space-x-1">
+                                  <Badge variant="default" className="bg-green-100 text-green-800">
+                                    {member.status}
+                                  </Badge>
+                                </div>
+                              </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveMember(member.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
+                                <UserX className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                          {/* Gemini summary below */}
+                          <div className="pt-2 w-full">
+                            <Gemini
+                              variant="member"
+                              prompt={`Give a short, 3–4 sentence compatibility summary for ${member.name} (age ${member.age}, from ${member.location}).
+                                Interests: ${member.interests.join(", ")}.
+                                Compatibility score: ${member.compatibility}%.
+                                Describe briefly:
+                                • The key reason for this score.
+                                • One or two personality traits the user will appreciate.
+                                • A one-line closing remark about how they fit in the group.
+                                Respond in a friendly, natural tone — no lists or headings, only short sentences.`}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Pending Invitations */}
+                  <div className="space-y-4">
+                    <h4>Pending Invitations ({invitedMembers.length})</h4>
+                    {invitedMembers.length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                        <p>No pending invitations</p>
+                        <p className="text-sm">Switch to "Find Companions" to invite new members</p>
+                      </div>
+                    ) : (
+                      invitedMembers.map((member) => (
+                        <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg bg-yellow-50 border-yellow-200">
                           <div className="flex items-center space-x-4">
                             <Avatar>
                               <AvatarFallback>{member.avatar}</AvatarFallback>
@@ -1767,6 +1954,9 @@ export function SocialMatching() {
                                     <span>{member.location}</span>
                                   </span>
                                 </div>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Invited {new Date(member.invitedAt).toLocaleDateString()}
+                                </p>
                               </div>
                               <div className="flex flex-wrap gap-1">
                                 {member.interests.slice(0, 3).map((interest, idx) => {
@@ -1788,116 +1978,67 @@ export function SocialMatching() {
                           </div>
                           <div className="flex items-center space-x-2">
                             <div className="text-right space-y-1">
-                              <Badge className={`px-3 py-1 ${getCompatibilityColor(member.compatibility)}`}>
-                                {member.compatibility}% compatible
+                              <Badge className={`px-3 py-1 ${getCompatibilityColor(member.matchScore)}`}>
+                                {member.matchScore}% match
                               </Badge>
                               <div className="flex items-center space-x-1">
-                                <Badge variant="default" className="bg-green-100 text-green-800">
-                                  {member.status}
+                                <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                                  Pending
                                 </Badge>
                               </div>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleRemoveMember(member.id)}
-                              className="text-destructive hover:text-destructive"
-                            >
-                              <UserX className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <>
-                  {/* Pending Invitations */}
-                  <div className="space-y-4">
-                    <h4>Pending Invitations ({invitedMembers.length})</h4>
-                    {invitedMembers.length === 0 ? (
-                      <div className="text-center py-8 text-muted-foreground">
-                        <Users className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                        <p>No pending invitations</p>
-                        <p className="text-sm">Switch to "Find Companions" to invite new members</p>
-                      </div>
-                    ) : (
-                      invitedMembers.map((member) => (
-                      <div key={member.id} className="flex items-center justify-between p-4 border rounded-lg bg-yellow-50 border-yellow-200">
-                        <div className="flex items-center space-x-4">
-                          <Avatar>
-                            <AvatarFallback>{member.avatar}</AvatarFallback>
-                          </Avatar>
-                          <div className="space-y-2">
-                            <div>
-                              <h5 className="font-medium">{member.name}</h5>
-                              <div className="flex items-center space-x-3 text-sm text-muted-foreground">
-                                <span>Age {member.age}</span>
-                                <span>•</span>
-                                <span className="flex items-center space-x-1">
-                                  <MapPin className="w-3 h-3" />
-                                  <span>{member.location}</span>
-                                </span>
-                              </div>
-                              <p className="text-sm text-muted-foreground mt-1">
-                                Invited {new Date(member.invitedAt).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <div className="flex flex-wrap gap-1">
-                              {member.interests.slice(0, 3).map((interest, idx) => {
-                                const Icon = getInterestIcon(interest);
-                                return (
-                                  <Badge key={idx} variant="secondary" className="text-xs flex items-center space-x-1">
-                                    <Icon className="w-3 h-3" />
-                                    <span>{interest}</span>
-                                  </Badge>
-                                );
-                              })}
-                              {member.interests.length > 3 && (
-                                <Badge variant="secondary" className="text-xs">
-                                  +{member.interests.length - 3} more
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <div className="text-right space-y-1">
-                            <Badge className={`px-3 py-1 ${getCompatibilityColor(member.matchScore)}`}>
-                              {member.matchScore}% match
-                            </Badge>
-                            <div className="flex items-center space-x-1">
-                              <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
-                                Pending
-                              </Badge>
-                            </div>
-                          </div>
-                          <div className="flex flex-col space-y-1">
+                            <div className="flex flex-col space-y-1">
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => handleAcceptInvite(member.id)}
                               className="text-green-600 hover:text-green-700"
                             >
-                              <Check className="w-4 h-4" />
-                            </Button>
+                                <Check className="w-4 h-4" />
+                              </Button>
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => handleCancelInvite(member.id)}
                               className="text-destructive hover:text-destructive"
                             >
-                              <X className="w-4 h-4" />
-                            </Button>
+                                <X className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                      </div>
                       ))
                     )}
                   </div>
                 </>
               )}
+
+              {/* Final AI Summary and Trip Suggestion */}
+              <div className="bg-gray-50 border border-blue-100 rounded-lg p-4 mt-6">
+                <h4 className="font-medium text-blue-700 mb-2">AI Summary & Trip Suggestions</h4>
+                <Gemini
+                  variant="trip"
+                  prompt={`
+                          Based on the current group composition and their interests:
+                          ${currentGroup
+                      .map((m) => `- ${m.name}: ${m.interests.join(", ")}`)
+                      .join("\n")}
+
+                            Please provide a response in the following clear format:
+
+                            ✨ **Group Synergy & Travel Style:**  
+                            - [Short, punchy summary of the group's dynamic and style]
+
+                            🌍 **Suggested Trip Destinations (2-3):**  
+                            1. [Destination 1] - [Why it fits the group]  
+                            2. [Destination 2] - [Why it fits the group]  
+                            3. [Destination 3] - [Optional]
+
+                            🤝 **Recommended Group Activity:**  
+                            - [One activity that will help everyone bond]
+                            `}
+                />
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -1908,8 +2049,8 @@ export function SocialMatching() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search by location, interests, name..." 
+              <Input
+                placeholder="Search by location, interests, name..."
                 className="pl-10"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -1939,68 +2080,6 @@ export function SocialMatching() {
                 </div>
               </SheetContent>
             </Sheet>
-          </div>
-
-          {/* Suggested Groups */}
-          <div className="space-y-4">
-            <h3 className="flex items-center space-x-2">
-              <Users className="w-5 h-5" />
-              <span>Suggested Groups</span>
-            </h3>
-            <div className="grid gap-4">
-              {suggestedGroups.map((group) => (
-                <Card key={group.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-3">
-                        <div>
-                          <h4 className="font-medium">{group.name}</h4>
-                          <div className="flex items-center space-x-4 mt-2 text-sm text-muted-foreground">
-                            <span className="flex items-center space-x-1">
-                              <MapPin className="w-4 h-4" />
-                              <span>{group.location}</span>
-                            </span>
-                            <span className="flex items-center space-x-1">
-                              <Calendar className="w-4 h-4" />
-                              <span>{group.tripDates}</span>
-                            </span>
-                            <span className="flex items-center space-x-1">
-                              <Users className="w-4 h-4" />
-                              <span>{group.members} members</span>
-                            </span>
-                          </div>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{group.description}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {group.interests.map((interest, idx) => {
-                            const Icon = getInterestIcon(interest);
-                            return (
-                              <Badge key={idx} variant="secondary" className="text-xs flex items-center space-x-1">
-                                <Icon className="w-3 h-3" />
-                                <span>{interest}</span>
-                              </Badge>
-                            );
-                          })}
-                        </div>
-                      </div>
-                      <div className="text-right space-y-2">
-                        <Badge className={`px-3 py-1 ${getCompatibilityColor(group.matchScore)}`}>
-                          {group.matchScore}% match
-                        </Badge>
-                        <div className="space-x-2">
-                          <Button size="sm" variant="outline">
-                            View Details
-                          </Button>
-                          <Button size="sm">
-                            Join Group
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
           </div>
 
           {/* Individual Companions */}
@@ -2065,8 +2144,8 @@ export function SocialMatching() {
                         </Badge>
                         <div className="space-y-2">
                           <div className="flex space-x-2">
-                            <Button 
-                              size="sm" 
+                            <Button
+                              size="sm"
                               variant="outline"
                               onClick={() => handleMessage(companion)}
                             >
@@ -2075,12 +2154,88 @@ export function SocialMatching() {
                             </Button>
                             <Button 
                               size="sm" 
-                              onClick={() => handleInviteToGroup(companion)}
+                            onClick={() => {
+                                setCompanionToInvite(companion);
+                                setInviteConfirmationOpen(true);
+                              }}
                             >
                               <UserPlus className="w-4 h-4 mr-1" />
                               Invite
                             </Button>
                           </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* AI Rationale Highlight */}
+                    {companion.compatibilityRationale && (
+                      <div className="mt-3 p-2 bg-yellow-50 border-l-2 border-yellow-500 rounded-r-md">
+                        <p className="font-semibold text-xs text-yellow-700">Gemini Match Insight:</p>
+                        <ul className="list-disc list-inside text-xs text-yellow-700">
+                          {companion.compatibilityRationale.map((rationale, index) => (
+                            <li key={index}>{rationale}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+                    {/* Suggested Groups */}
+                    <div className="space-y-4">
+            <h3 className="flex items-center space-x-2">
+              <Users className="w-5 h-5" />
+              <span>Suggested Groups</span>
+            </h3>
+            <div className="grid gap-4">
+              {suggestedGroups.map((group) => (
+                <Card key={group.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="font-medium">{group.name}</h4>
+                          <div className="flex items-center space-x-4 mt-2 text-sm text-muted-foreground">
+                            <span className="flex items-center space-x-1">
+                              <MapPin className="w-4 h-4" />
+                              <span>{group.location}</span>
+                            </span>
+                            <span className="flex items-center space-x-1">
+                              <Calendar className="w-4 h-4" />
+                              <span>{group.tripDates}</span>
+                            </span>
+                            <span className="flex items-center space-x-1">
+                              <Users className="w-4 h-4" />
+                              <span>{group.members} members</span>
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{group.description}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {group.interests.map((interest, idx) => {
+                            const Icon = getInterestIcon(interest);
+                            return (
+                              <Badge key={idx} variant="secondary" className="text-xs flex items-center space-x-1">
+                                <Icon className="w-3 h-3" />
+                                <span>{interest}</span>
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <div className="text-right space-y-2">
+                        <Badge className={`px-3 py-1 ${getCompatibilityColor(group.matchScore)}`}>
+                          {group.matchScore}% match
+                        </Badge>
+                        <div className="space-x-2">
+                          <Button size="sm" variant="outline">
+                            View Details
+                          </Button>
+                          <Button size="sm">
+                            Join Group
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -2154,8 +2309,8 @@ export function SocialMatching() {
                         <p className="text-xs text-muted-foreground">per day</p>
                       </div>
                       <div className="space-y-2">
-                        <Button 
-                          size="sm" 
+                        <Button
+                          size="sm"
                           variant="outline"
                           onClick={() => handleViewGuideProfile(guide)}
                           className="w-full"
@@ -2164,7 +2319,7 @@ export function SocialMatching() {
                           View Profile
                         </Button>
                         <div className="flex space-x-1">
-                          <Button 
+                          <Button
                             size="sm"
                             onClick={() => handleContactGuide(guide)}
                             className="flex-1"
@@ -2172,7 +2327,7 @@ export function SocialMatching() {
                             <Mail className="w-4 h-4 mr-1" />
                             Contact
                           </Button>
-                          <Button 
+                          <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleViewOnMap(guide)}
@@ -2219,6 +2374,7 @@ export function SocialMatching() {
 
       {/* Companion Profile Dialog */}
       <CompanionProfileDialog />
+      <InviteConfirmationDialog />
     </div>
   );
 }
