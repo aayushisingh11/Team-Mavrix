@@ -3,6 +3,7 @@ import LoginPage from './components/LoginPage';
 import Dashboard from './components/Dashboard';
 import { CartProvider } from './components/CartContext';
 import { SplitwiseProvider } from './components/SplitwiseContext';
+import { Toaster } from 'sonner';
 
 export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -25,6 +26,7 @@ export default function App() {
             <LoginPage onLogin={handleLogin} />
           )}
         </div>
+        <Toaster position="top-right" richColors />
       </CartProvider>
     </SplitwiseProvider>
   );

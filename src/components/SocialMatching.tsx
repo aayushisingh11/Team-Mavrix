@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
@@ -13,98 +13,92 @@ import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
 import { Checkbox } from './ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { toast } from 'sonner@2.0.3';
-import {
-  Users,
-  MessageCircle,
-  Heart,
-  MapPin,
-  Calendar,
-  Star,
-  UserPlus,
-  Share2,
-  Target,
-  Zap,
-  Clock,
-  Coffee,
-  Camera,
-  Mountain,
-  Music,
-  Settings,
-  Edit3,
-  Send,
-  Phone,
-  Video,
-  MoreHorizontal,
-  Search,
-  Filter,
-  X,
-  UserCircle,
-  Globe,
-  Briefcase,
-  Mail,
-  MapPinIcon,
-  Plus,
-  Minus,
-  Check,
-  UserX,
-  AlertCircle,
-  ExternalLink,
-  Navigation,
-  Shield,
-  Eye,
-  EyeOff,
-  Wallet,
-  CreditCard,
-  Car,
-  Home,
-  Smartphone,
-  Instagram,
-  Facebook,
-  Twitter,
-  Award,
-  Book,
-  Plane,
-  TrendingUp,
-  Lock,
-  Upload,
-  Save,
-  User
-} from 'lucide-react';
+import { toast } from 'sonner';
+import { Users, MessageCircle, Heart, MapPin, Calendar, Star, UserPlus, Share2, Target, Zap, Clock, Coffee, Camera, Mountain, Music, Settings, Edit3, Send, Phone, Video, MoreHorizontal, Search, Filter, X, UserCircle, Globe, Briefcase, Mail, MapPinIcon, Plus, Minus, Check, UserX, AlertCircle, ExternalLink, Navigation, Shield, Eye, EyeOff, Wallet, CreditCard, Car, Home, Smartphone, Instagram, Facebook, Twitter, Award, Book, Plane, TrendingUp, Lock, Upload, Save, User, Rss } from 'lucide-react';
 import Gemini from "./Gemini";
+
+// --- MOCK GEMINI INTEGRATION START ---
+async function getGeminiCompatibility(userA, userB) {
+  await new Promise(resolve => setTimeout(resolve, 50));
+
+  const sharedInterests = userA.interests.filter((interest) => 
+    userB.interests.includes(interest)
+  );
+
+  let score = 50 + (sharedInterests.length * 10);
+  score = Math.min(99, Math.max(60, score));
+
+  let rationale: any[] = [];
+
+  if (sharedInterests.length > 0) {
+    rationale.push(`Strong overlap in interests, especially: ${sharedInterests.join(', ')}.`);
+  } else {
+    rationale.push("No direct shared interests found, but travel styles are complementary.");
+  }
+
+  if (userA.travelStyle === userB.travelStyle) {
+    score = Math.min(99, score + 5);
+    rationale.push(`Both prefer the '${userA.travelStyle}' travel style, ensuring a similar pace.`);
+  }
+
+  if (score >= 90) {
+    rationale.push("High match potential for an effortless and engaging trip!");
+  } else if (score >= 80) {
+    rationale.push("Solid foundation for collaboration, with a few key differences in focus.");
+  } else {
+    rationale.push("Moderate match, requiring clear communication on activity priorities.");
+  }
+
+  const summary = `Compatibility score of ${score}% based on ${sharedInterests.length} shared interests.`;
+
+  return {
+    score: score,
+    summary: summary,
+    rationale: rationale,
+  };
+}
+// --- MOCK GEMINI INTEGRATION END ---
 
 export function SocialMatching() {
   const [activeTab, setActiveTab] = useState('group');
-  const [selectedChat, setSelectedChat] = useState(null);
+  const [selectedChat, setSelectedChat] = useState<any>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
   const [message, setMessage] = useState('');
+  const [companionScores, setCompanionScores] = useState({});
 
   // Search and filter states
   const [searchQuery, setSearchQuery] = useState('');
   const [locationFilter, setLocationFilter] = useState('');
-  const [interestFilters, setInterestFilters] = useState([]);
+  const [interestFilters, setInterestFilters] = useState<any[]>([]);
   const [compatibilityFilter, setCompatibilityFilter] = useState('any');
   const [verifiedFilter, setVerifiedFilter] = useState(false);
 
+
   // Group management states
-  const [invitedMembers, setInvitedMembers] = useState([]);
+  const [invitedMembers, setInvitedMembers] = useState<any[]>([]);
   const [showInvited, setShowInvited] = useState(false);
   const [isGroupChatOpen, setIsGroupChatOpen] = useState(false);
 
+
   // Profile editing states
-  const [editingProfile, setEditingProfile] = useState(null);
-  const [tempProfileData, setTempProfileData] = useState(null);
+  const [editingProfile, setEditingProfile] = useState(null as any);
+  const [tempProfileData, setTempProfileData] = useState(null as any);
   const [profileEditTab, setProfileEditTab] = useState('basic');
 
+
   // Guide states
-  const [selectedGuide, setSelectedGuide] = useState(null);
+  const [selectedGuide, setSelectedGuide] = useState(null as any);
   const [isGuideProfileOpen, setIsGuideProfileOpen] = useState(false);
 
+
   // Companion profile states
-  const [selectedCompanion, setSelectedCompanion] = useState(null);
+  const [selectedCompanion, setSelectedCompanion] = useState(null as any);
   const [isCompanionProfileOpen, setIsCompanionProfileOpen] = useState(false);
+  
+  const [inviteConfirmationOpen, setInviteConfirmationOpen] = useState(false);
+  const [companionToInvite, setCompanionToInvite] = useState<any>(null);
 
   const [currentGroup, setCurrentGroup] = useState([
     {
@@ -248,6 +242,7 @@ export function SocialMatching() {
   ];
 
   const [userProfile, setUserProfile] = useState({
+    id: 100,
     name: 'John Doe',
     age: 29,
     location: 'New York, USA',
@@ -293,48 +288,64 @@ export function SocialMatching() {
 
   const localGuides = [
     {
-      id: 7,
-      name: 'Ravi Desai',
-      avatar: 'RD',
-      location: 'Panaji, Goa',
-      address: 'MG Road, Panaji, Goa 403001',
-      coordinates: { lat: 15.4909, lng: 73.8278 },
-      phone: '+91 98765 43210',
-      email: 'ravi.desai@email.com',
-      rating: 4.9,
-      reviews: 156,
-      specialties: ['Local culture', 'Hidden gems', 'Food tours'],
-      languages: ['English', 'Hindi', 'Konkani'],
-      pricePerDay: 2500,
-      verified: true,
-      bio: 'Born and raised in Goa, I have been sharing the beauty of my homeland with travelers for over 8 years. I specialize in off-the-beaten-path experiences and authentic local cuisine.',
-      experience: '8+ years'
-    },
-    {
-      id: 8,
-      name: 'Maria Fernandes',
-      avatar: 'MF',
-      location: 'Old Goa',
-      address: 'Basilica of Bom Jesus Road, Old Goa 403402',
-      coordinates: { lat: 15.5007, lng: 73.9114 },
-      phone: '+91 87654 32109',
-      email: 'maria.fernandes@email.com',
-      rating: 4.8,
-      reviews: 89,
-      specialties: ['Heritage sites', 'Photography', 'Portuguese history'],
-      languages: ['English', 'Portuguese', 'Hindi'],
-      pricePerDay: 3000,
-      verified: true,
-      bio: 'Heritage enthusiast with a deep knowledge of Portuguese colonial history. I love helping photographers capture the perfect shots of Old Goa\'s magnificent architecture.',
-      experience: '6+ years'
+        id: 7,
+        name: 'Ravi Desai',
+        avatar: 'RD',
+        location: 'Panaji, Goa',
+        address: 'MG Road, Panaji, Goa 403001',
+        coordinates: { lat: 15.4909, lng: 73.8278 },
+        phone: '+91 98765 43210',
+        email: 'ravi.desai@email.com',
+        rating: 4.9,
+        reviews: 156,
+        specialties: ['Local culture', 'Hidden gems', 'Food tours'],
+        languages: ['English', 'Hindi', 'Konkani'],
+        pricePerDay: 2500,
+        verified: true,
+        bio: 'Born and raised in Goa, I have been sharing the beauty of my homeland with travelers for over 8 years. I specialize in off-the-beaten-path experiences and authentic local cuisine.',
+        experience: '8+ years'
+      },
+      {
+        id: 8,
+        name: 'Maria Fernandes', 
+        avatar: 'MF',
+        location: 'Old Goa',
+        address: 'Basilica of Bom Jesus Road, Old Goa 403402',
+        coordinates: { lat: 15.5007, lng: 73.9114 },
+        phone: '+91 87654 32109',
+        email: 'maria.fernandes@email.com',
+        rating: 4.8,
+        reviews: 89,
+        specialties: ['Heritage sites', 'Photography', 'Portuguese history'],
+        languages: ['English', 'Portuguese', 'Hindi'],
+        pricePerDay: 3000,
+        verified: true,
+        bio: 'Heritage enthusiast with a deep knowledge of Portuguese colonial history. I love helping photographers capture the perfect shots of Old Goa\'s magnificent architecture.',
+        experience: '6+ years'
+      }
+    ];
+
+  // --- GEMINI INTEGRATION LOGIC ---
+  const calculateAllCompanionScores = async () => {
+    const newScores = {};
+    for (const companion of allCompanions) {
+      const geminiData = await getGeminiCompatibility(userProfile, companion);
+      newScores[companion.id] = {
+        matchScore: geminiData.score,
+        compatibilityRationale: geminiData.rationale
+      };
     }
-  ];
+    setCompanionScores(newScores);
+  };
+
+  useEffect(() => {
+    calculateAllCompanionScores();
+  }, [userProfile.interests, userProfile.travelStyle]);
 
   // Calculate group compatibility dynamically
   const groupCompatibility = useMemo(() => {
     if (currentGroup.length === 0) return 0;
-
-    // Get all interests from group members
+    
     const allInterests = currentGroup.flatMap(member => member.interests);
     const uniqueInterests = [...new Set(allInterests)];
 
@@ -361,8 +372,16 @@ export function SocialMatching() {
 
   // Filter companions based on search and filters
   const filteredCompanions = useMemo(() => {
-    return allCompanions.filter(companion => {
-      // Search filter
+    return allCompanions.map(companion => {
+      const aiData = companionScores[companion.id];
+      const finalCompanion = {
+        ...companion,
+        matchScore: aiData?.matchScore ?? companion.matchScore,
+        compatibilityRationale: aiData?.compatibilityRationale,
+      };
+      return finalCompanion;
+    })
+    .filter(companion => {
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const matchesSearch =
@@ -400,7 +419,7 @@ export function SocialMatching() {
 
       return true;
     });
-  }, [allCompanions, searchQuery, locationFilter, interestFilters, compatibilityFilter, verifiedFilter]);
+  }, [allCompanions, companionScores, searchQuery, locationFilter, interestFilters, compatibilityFilter, verifiedFilter]);
 
   const getInterestIcon = (interest) => {
     switch (interest) {
@@ -435,12 +454,13 @@ export function SocialMatching() {
   const handleInviteToGroup = (companion) => {
     // Check if already invited or in group
     const isAlreadyInGroup = currentGroup.some(member => member.id === companion.id);
-    const isAlreadyInvited = invitedMembers.some(member => member.id === companion.id);
+    const isAlreadyInvited = invitedMembers.some((member:any) => member.id === companion.id);
 
     if (isAlreadyInGroup) {
       toast.error('User is already in your group');
       return;
     }
+
 
     if (isAlreadyInvited) {
       toast.error('User is already invited');
@@ -451,6 +471,7 @@ export function SocialMatching() {
     const invitedMember = {
       ...companion,
       status: 'invited',
+      compatibility: companion.matchScore,
       invitedAt: new Date().toISOString()
     };
 
@@ -465,12 +486,12 @@ export function SocialMatching() {
   };
 
   const handleCancelInvite = (memberId) => {
-    setInvitedMembers(prev => prev.filter(member => member.id !== memberId));
+    setInvitedMembers(prev => prev.filter((member: any) => member.id !== memberId));
     toast.success('Invitation cancelled');
   };
 
   const handleAcceptInvite = (memberId) => {
-    const invitedMember = invitedMembers.find(member => member.id === memberId);
+    const invitedMember = invitedMembers.find((member: any) => member.id === memberId);
     if (invitedMember) {
       const newMember = {
         ...invitedMember,
@@ -478,7 +499,7 @@ export function SocialMatching() {
         status: 'confirmed'
       };
       setCurrentGroup(prev => [...prev, newMember]);
-      setInvitedMembers(prev => prev.filter(member => member.id !== memberId));
+      setInvitedMembers(prev => prev.filter((member: any) => member.id !== memberId));
       toast.success(`${invitedMember.name} joined the group!`);
     }
   };
@@ -551,6 +572,44 @@ export function SocialMatching() {
   const handleGroupChat = () => {
     setIsGroupChatOpen(true);
     toast.success('Opening group chat');
+  };
+
+  const confirmInvite = () => {
+    if (!companionToInvite) return;
+    setInviteConfirmationOpen(false);
+    toast.success("Invite Sent, waiting for confirmation");
+    const isAlreadyInGroup = currentGroup.some(member => member.id === companionToInvite.id);
+    const isAlreadyInvited = invitedMembers.some((member:any) => member.id === companionToInvite.id);
+  
+    if (isAlreadyInGroup) {
+      toast.error('User is already in your group');
+      setInviteConfirmationOpen(false);
+      setCompanionToInvite(null);
+      return;
+    }
+  
+    if (isAlreadyInvited) {
+      toast.error('User is already invited');
+      setInviteConfirmationOpen(false);
+      setCompanionToInvite(null);
+      return;
+    }
+  
+    const invitedMember = {
+      ...companionToInvite,
+      status: 'invited',
+      compatibility: companionToInvite.matchScore,
+      invitedAt: new Date().toISOString()
+    };
+    
+    setInvitedMembers(prev => [...prev, invitedMember]);
+    setInviteConfirmationOpen(false);
+    setCompanionToInvite(null);
+  };
+  
+  const cancelInvite = () => {
+    setInviteConfirmationOpen(false);
+    setCompanionToInvite(null);
   };
 
   const ChatInterface = ({ companion, onClose }) => (
@@ -763,6 +822,7 @@ export function SocialMatching() {
             <div className="space-y-2">
               <label className="text-sm font-medium">Occupation</label>
               <Input
+              
                 value={tempProfileData.occupation}
                 onChange={(e) => setTempProfileData(prev => ({ ...prev, occupation: e.target.value }))}
                 placeholder="Your profession"
@@ -773,6 +833,7 @@ export function SocialMatching() {
           <div className="space-y-2">
             <label className="text-sm font-medium">Bio *</label>
             <Textarea
+            
               value={tempProfileData.bio}
               onChange={(e) => setTempProfileData(prev => ({ ...prev, bio: e.target.value }))}
               rows={3}
@@ -857,7 +918,6 @@ export function SocialMatching() {
                 </SelectContent>
               </Select>
             </div>
-
             <div className="space-y-2">
               <label className="text-sm font-medium">Budget Preference</label>
               <Select
@@ -1636,6 +1696,29 @@ export function SocialMatching() {
     );
   };
 
+    /* === ADD CONFIRMATION MODAL HERE === */
+    const InviteConfirmationDialog = () => (
+        <Dialog open={inviteConfirmationOpen} onOpenChange={setInviteConfirmationOpen}>
+          <DialogContent className="max-w-md mx-auto text-center p-6 rounded-2xl">
+            <DialogHeader>
+              <DialogTitle>Invite to Group</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to invite {companionToInvite?.name} to your travel group?
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-center gap-4 mt-6">
+              {/* <Button variant="outline" onClick={cancelInvite}> */}
+              <Button variant="outline" onClick={() => setInviteConfirmationOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={confirmInvite}>
+                Yes, Invite!
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      );
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -1751,10 +1834,7 @@ export function SocialMatching() {
                                   Explain briefly why the score makes sense, what strengths the group shares, and one suggestion to improve teamwork or trip harmony.
                                   Write in natural language — no lists or section titles.`}
                       />
-
                     </div>
-
-
                   </div>
 
                   {/* Group Members */}
@@ -1816,12 +1896,12 @@ export function SocialMatching() {
                                   </Badge>
                                 </div>
                               </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleRemoveMember(member.id)}
-                                className="text-destructive hover:text-destructive"
-                              >
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveMember(member.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
                                 <UserX className="w-4 h-4" />
                               </Button>
                             </div>
@@ -1908,20 +1988,20 @@ export function SocialMatching() {
                               </div>
                             </div>
                             <div className="flex flex-col space-y-1">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleAcceptInvite(member.id)}
-                                className="text-green-600 hover:text-green-700"
-                              >
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleAcceptInvite(member.id)}
+                              className="text-green-600 hover:text-green-700"
+                            >
                                 <Check className="w-4 h-4" />
                               </Button>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleCancelInvite(member.id)}
-                                className="text-destructive hover:text-destructive"
-                              >
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleCancelInvite(member.id)}
+                              className="text-destructive hover:text-destructive"
+                            >
                                 <X className="w-4 h-4" />
                               </Button>
                             </div>
@@ -1932,6 +2012,7 @@ export function SocialMatching() {
                   </div>
                 </>
               )}
+
               {/* Final AI Summary and Trip Suggestion */}
               <div className="bg-gray-50 border border-blue-100 rounded-lg p-4 mt-6">
                 <h4 className="font-medium text-blue-700 mb-2">AI Summary & Trip Suggestions</h4>
@@ -1956,10 +2037,8 @@ export function SocialMatching() {
                             🤝 **Recommended Group Activity:**  
                             - [One activity that will help everyone bond]
                             `}
-
                 />
               </div>
-
             </CardContent>
           </Card>
         </TabsContent>
@@ -2001,68 +2080,6 @@ export function SocialMatching() {
                 </div>
               </SheetContent>
             </Sheet>
-          </div>
-
-          {/* Suggested Groups */}
-          <div className="space-y-4">
-            <h3 className="flex items-center space-x-2">
-              <Users className="w-5 h-5" />
-              <span>Suggested Groups</span>
-            </h3>
-            <div className="grid gap-4">
-              {suggestedGroups.map((group) => (
-                <Card key={group.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-3">
-                        <div>
-                          <h4 className="font-medium">{group.name}</h4>
-                          <div className="flex items-center space-x-4 mt-2 text-sm text-muted-foreground">
-                            <span className="flex items-center space-x-1">
-                              <MapPin className="w-4 h-4" />
-                              <span>{group.location}</span>
-                            </span>
-                            <span className="flex items-center space-x-1">
-                              <Calendar className="w-4 h-4" />
-                              <span>{group.tripDates}</span>
-                            </span>
-                            <span className="flex items-center space-x-1">
-                              <Users className="w-4 h-4" />
-                              <span>{group.members} members</span>
-                            </span>
-                          </div>
-                        </div>
-                        <p className="text-sm text-muted-foreground">{group.description}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {group.interests.map((interest, idx) => {
-                            const Icon = getInterestIcon(interest);
-                            return (
-                              <Badge key={idx} variant="secondary" className="text-xs flex items-center space-x-1">
-                                <Icon className="w-3 h-3" />
-                                <span>{interest}</span>
-                              </Badge>
-                            );
-                          })}
-                        </div>
-                      </div>
-                      <div className="text-right space-y-2">
-                        <Badge className={`px-3 py-1 ${getCompatibilityColor(group.matchScore)}`}>
-                          {group.matchScore}% match
-                        </Badge>
-                        <div className="space-x-2">
-                          <Button size="sm" variant="outline">
-                            View Details
-                          </Button>
-                          <Button size="sm">
-                            Join Group
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
           </div>
 
           {/* Individual Companions */}
@@ -2135,14 +2152,90 @@ export function SocialMatching() {
                               <MessageCircle className="w-4 h-4 mr-1" />
                               Message
                             </Button>
-                            <Button
-                              size="sm"
-                              onClick={() => handleInviteToGroup(companion)}
+                            <Button 
+                              size="sm" 
+                            onClick={() => {
+                                setCompanionToInvite(companion);
+                                setInviteConfirmationOpen(true);
+                              }}
                             >
                               <UserPlus className="w-4 h-4 mr-1" />
                               Invite
                             </Button>
                           </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* AI Rationale Highlight */}
+                    {companion.compatibilityRationale && (
+                      <div className="mt-3 p-2 bg-yellow-50 border-l-2 border-yellow-500 rounded-r-md">
+                        <p className="font-semibold text-xs text-yellow-700">Gemini Match Insight:</p>
+                        <ul className="list-disc list-inside text-xs text-yellow-700">
+                          {companion.compatibilityRationale.map((rationale, index) => (
+                            <li key={index}>{rationale}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+                    {/* Suggested Groups */}
+                    <div className="space-y-4">
+            <h3 className="flex items-center space-x-2">
+              <Users className="w-5 h-5" />
+              <span>Suggested Groups</span>
+            </h3>
+            <div className="grid gap-4">
+              {suggestedGroups.map((group) => (
+                <Card key={group.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="font-medium">{group.name}</h4>
+                          <div className="flex items-center space-x-4 mt-2 text-sm text-muted-foreground">
+                            <span className="flex items-center space-x-1">
+                              <MapPin className="w-4 h-4" />
+                              <span>{group.location}</span>
+                            </span>
+                            <span className="flex items-center space-x-1">
+                              <Calendar className="w-4 h-4" />
+                              <span>{group.tripDates}</span>
+                            </span>
+                            <span className="flex items-center space-x-1">
+                              <Users className="w-4 h-4" />
+                              <span>{group.members} members</span>
+                            </span>
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{group.description}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {group.interests.map((interest, idx) => {
+                            const Icon = getInterestIcon(interest);
+                            return (
+                              <Badge key={idx} variant="secondary" className="text-xs flex items-center space-x-1">
+                                <Icon className="w-3 h-3" />
+                                <span>{interest}</span>
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <div className="text-right space-y-2">
+                        <Badge className={`px-3 py-1 ${getCompatibilityColor(group.matchScore)}`}>
+                          {group.matchScore}% match
+                        </Badge>
+                        <div className="space-x-2">
+                          <Button size="sm" variant="outline">
+                            View Details
+                          </Button>
+                          <Button size="sm">
+                            Join Group
+                          </Button>
                         </div>
                       </div>
                     </div>
@@ -2281,6 +2374,7 @@ export function SocialMatching() {
 
       {/* Companion Profile Dialog */}
       <CompanionProfileDialog />
+      <InviteConfirmationDialog />
     </div>
   );
 }
