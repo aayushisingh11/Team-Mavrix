@@ -17,7 +17,7 @@ export default function Gemini({ prompt, onResponse, variant = "default" }: {
       setResponse("Analyzing...");
       try {
         const backendUrl = "https://team-mavrix-backend.vercel.app/";
-        const res = await fetch(`${backendUrl}/api/generate`, {
+        const res = await fetch(`${backendUrl}api/generate`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ prompt }),
