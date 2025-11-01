@@ -1253,7 +1253,7 @@ export function ItineraryPlanner() {
 
 
     try {
-      const response = await fetch('https://my-fastapi-backend.vercel.app/api/generate-itinerary', { // Ensure URL/port
+      const response = await fetch('https://team-mavrix-backend.vercel.app/api/generate-itinerary', { // Ensure URL/port
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         // --- Send all inputs ---
