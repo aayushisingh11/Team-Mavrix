@@ -13,13 +13,18 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 
 # --- Configure GenAI ---
+
 def get_model():
     api_key = os.getenv("GOOGLE_API_KEY")
-if not api_key:
-    logger.error("GOOGLE_API_KEY not found in environment variables.")
-    raise ValueError("GOOGLE_API_KEY not found in environment variables.")
-genai.configure(api_key=api_key)
-logger.info("GenAI configured successfully.")
+    if not api_key:
+        logger.error("GOOGLE_API_KEY not found in environment variables.")
+        raise ValueError("GOOGLE_API_KEY not found in environment variables.")
+
+    genai.configure(api_key=api_key)
+    logger.info("GenAI configured successfully.")
+
+    return genai.GenerativeModel("gemini-2.5-flash")
+
 model = get_model()
 
 # --- Initialize the Model ---
