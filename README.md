@@ -9,7 +9,7 @@
   ## Running backend (using seprate terminal)
   Run `pip install` to install the dependencies. (Make sure you are in Backend folder in terminal)
 
-  or `Run pip install fastapi uvicorn google-genai python-dotenv google-generativeai` to install the dependencies. (Make sure you are in Backend folder in terminal)
+  or Run `pip install fastapi uvicorn google-genai python-dotenv google-generativeai` to install the dependencies. (Make sure you are in Backend folder in terminal)
   
   Run `uvicorn main:app --reload --host 127.0.0.1 --port 8000` to start backend server.
   
